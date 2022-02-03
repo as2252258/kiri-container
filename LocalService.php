@@ -2,14 +2,13 @@
 
 namespace Kiri\Di;
 
-use Kiri\Abstracts\Component;
 use Kiri;
 
 
 /**
  * 服务定位器
  */
-class LocalService extends Component
+class LocalService
 {
 
 

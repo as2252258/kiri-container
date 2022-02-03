@@ -12,10 +12,7 @@ namespace Kiri\Di;
 use Closure;
 use Exception;
 use Kiri;
-use Kiri\Abstracts\Logger;
-use Kiri\Annotation\Inject;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -57,7 +54,6 @@ class Container implements ContainerInterface
 
 	/** @var array|string[] */
 	private array $_interfaces = [
-		LoggerInterface::class => Logger::class
 	];
 
 
@@ -202,7 +198,6 @@ class Container implements ContainerInterface
 	public function propertyInject(ReflectionClass $reflect, $object): mixed
 	{
 		foreach (NoteManager::getPropertyAnnotation($reflect) as $property => $inject) {
-			/** @var Inject $inject */
 			$inject->execute($object, $property);
 		}
 		return $object;
