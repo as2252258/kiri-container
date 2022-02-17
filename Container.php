@@ -307,6 +307,9 @@ class Container implements ContainerInterface
 	 */
 	public function getMethodParameters(string $className, string $method): ?array
 	{
+		$reflectMethod = $this->getReflectMethod($this->getReflect($className), $method);
+
+		return $this->resolveMethodParameters($reflectMethod);
 		if (isset($this->_parameters[$className]) && isset($this->_parameters[$className][$method])) {
 			return $this->_parameters[$className][$method];
 		}
