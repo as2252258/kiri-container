@@ -269,12 +269,11 @@ class NoteManager
 	/**
 	 * @param ReflectionClass|string $class
 	 * @return array
-	 * @throws \ReflectionException
 	 */
 	public static function getMethods(ReflectionClass|string $class): array
 	{
 		if (is_string($class)) {
-			$class = self::getReflect($class);
+			$class = \Kiri::getDi()->getReflect($class);
 		}
 		return static::$_classMethod[$class->getName()] ?? [];
 	}
