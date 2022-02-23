@@ -157,7 +157,13 @@ class Target
 		/** @var ReflectionMethod $attributes */
 		$attributes = $this->methods[$property] ?? [];
 		if (!empty($attributes)) {
-			return $attributes->getAttributes($annotation);
+			if (empty($annotation)) {
+				return $attributes->getAttributes();
+			}
+			$anno = $attributes->getAttributes($annotation);
+			if (count($anno) > 0) {
+				return $anno[0];
+			}
 		}
 		return [];
 	}
