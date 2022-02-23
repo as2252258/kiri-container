@@ -9,6 +9,7 @@ class TargetManager
 	private static array $targets = [];
 
 
+
 	/**
 	 * @param string $class
 	 * @return Target|null
