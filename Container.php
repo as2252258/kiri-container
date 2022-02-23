@@ -53,8 +53,7 @@ class Container implements ContainerInterface
 
 
 	/** @var array|string[] */
-	private array $_interfaces = [
-	];
+	private array $_interfaces = [];
 
 
 	/**
@@ -197,8 +196,12 @@ class Container implements ContainerInterface
 	 */
 	public function propertyInject(ReflectionClass $reflect, $object): mixed
 	{
-		foreach (NoteManager::getPropertyAnnotation($reflect) as $property => $inject) {
-			$inject->execute($object, $property);
+		$properties = TargetManager::get($reflect->getName())->getPropertyAttribute();
+		foreach ($properties as $property) {
+			$attributes = $property->getAttributes();
+			foreach ($attributes as $attribute) {
+				$attribute->newInstance()->execute($object, $property);
+			}
 		}
 		return $object;
 	}
@@ -211,11 +214,7 @@ class Container implements ContainerInterface
 	 */
 	public function getMethodAttribute($className, $method = null): array
 	{
-		$methods = NoteManager::getMethodAnnotation($this->getReflect($className));
-		if (!empty($method)) {
-			return $methods[$method] ?? [];
-		}
-		return $methods;
+		return TargetManager::get($className)->getMethodAttribute($method);
 	}
 
 
@@ -226,14 +225,7 @@ class Container implements ContainerInterface
 	 */
 	public function getClassReflectionProperty(string $class, string $property = null): ReflectionProperty|null|array
 	{
-		$lists = NoteManager::getProperty($this->getReflect($class));
-		if (empty($lists)) {
-			return null;
-		}
-		if (!empty($property)) {
-			return $lists[$property] ?? null;
-		}
-		return $lists;
+		return TargetManager::get($class)->getProperty($property);
 	}
 
 
@@ -265,7 +257,7 @@ class Container implements ContainerInterface
 		if ($reflect->isAbstract() || $reflect->isTrait() || $reflect->isInterface()) {
 			return $this->_reflection[$class] = $reflect;
 		}
-		$construct = NoteManager::resolveTarget($reflect);
+		$construct = TargetManager::set($class, $reflect)->getConstruct();
 		if (!empty($construct) && $construct->getNumberOfParameters() > 0) {
 			$this->_constructs[$class] = $construct;
 		}
@@ -274,28 +266,23 @@ class Container implements ContainerInterface
 
 
 	/**
-	 * @param ReflectionClass|string $class
+	 * @param string $class
 	 * @return ReflectionMethod[]
-	 * @throws ReflectionException
 	 */
-	public function getReflectMethods(ReflectionClass|string $class): array
+	public function getReflectMethods(string $class): array
 	{
-		if (is_string($class)) {
-			$class = $this->getReflect($class);
-		}
-		return NoteManager::getMethods($class);
+		return TargetManager::get($class)->getMethods();
 	}
 
 
 	/**
-	 * @param ReflectionClass|string $class
+	 * @param string $class
 	 * @param string $method
 	 * @return ReflectionMethod|null
-	 * @throws ReflectionException
 	 */
-	public function getReflectMethod(ReflectionClass|string $class, string $method): ?ReflectionMethod
+	public function getReflectMethod(string $class, string $method): ?ReflectionMethod
 	{
-		return $this->getReflectMethods($class)[$method] ?? null;
+		return TargetManager::get($class)->getMethod($method);
 	}
 
 
@@ -310,7 +297,7 @@ class Container implements ContainerInterface
 		if (isset($this->_parameters[$className]) && isset($this->_parameters[$className][$method])) {
 			return $this->_parameters[$className][$method];
 		}
-		$reflectMethod = $this->getReflectMethod($this->getReflect($className), $method);
+		$reflectMethod = $this->getReflectMethod($className, $method);
 		if (!($reflectMethod instanceof ReflectionMethod)) {
 			throw new ReflectionException("Class does not have a function $className::$method");
 		}
