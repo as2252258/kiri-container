@@ -85,6 +85,7 @@ class Container implements ContainerInterface
 		if ($this->isInterface($class)) {
 			$class = $this->_interfaces[$class];
 			if (is_null($class)) {
+				var_dump($this->_interfaces);
 				throw new Exception('Unknown class mapping ' . $class . '::class');
 			}
 		}
