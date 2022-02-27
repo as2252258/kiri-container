@@ -88,6 +88,7 @@ class Target
 	 * @param string $method
 	 * @param string $annotation
 	 * @return mixed
+	 * @throws ReflectionException
 	 */
 	public function getSpecify_annotation(string $method, string $annotation): mixed
 	{
@@ -100,15 +101,16 @@ class Target
 
 
 	/**
-	 * @return array<string, ReflectionAttribute[]>
+	 * @return array
+	 * @throws ReflectionException
 	 */
 	#[Pure] public function getMethodsAttribute(): array
 	{
 		$methods = $this->target->getMethods();
 
 		$array = [];
-		foreach ($methods as $key => $method) {
-			$array[$key] = $this->getMethodAttribute($method);
+		foreach ($methods as $method) {
+			$array[$method->getName()] = $this->getMethodAttribute($method->getName());
 		}
 		return $array;
 	}
