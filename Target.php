@@ -5,6 +5,7 @@ namespace Kiri\Di;
 use JetBrains\PhpStorm\Pure;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use ReflectionProperty;
 
@@ -31,8 +32,6 @@ class Target
 	{
 		$this->target = $target;
 		$this->construct = $target->getConstructor();
-		$this->resolveProperty();
-		$this->resolveMethods();
 	}
 
 
@@ -42,31 +41,6 @@ class Target
 	public function getConstruct(): mixed
 	{
 		return $this->construct;
-	}
-
-
-	/**
-	 * @return void
-	 */
-	protected function resolveMethods()
-	{
-		$methods = $this->target->getMethods();
-		foreach ($methods as $method) {
-			$this->methods[$method->getName()] = $method;
-		}
-	}
-
-
-	/**
-	 * @return void
-	 */
-	protected function resolveProperty()
-	{
-		$methods = $this->target->getProperties(ReflectionProperty::IS_PRIVATE | ReflectionProperty::IS_PUBLIC |
-			ReflectionProperty::IS_PROTECTED);
-		foreach ($methods as $method) {
-			$this->property[$method->getName()] = $method;
-		}
 	}
 
 
@@ -81,30 +55,32 @@ class Target
 
 	/**
 	 * @param string $property
-	 * @return ReflectionProperty|null
+	 * @return ReflectionProperty
+	 * @throws ReflectionException
 	 */
-	#[Pure] public function getProperty(string $property): ?ReflectionProperty
+	#[Pure] public function getProperty(string $property): ReflectionProperty
 	{
-		return $this->property[$property] ?? null;
+		return $this->target->getProperty($property);
 	}
 
 
 	/**
 	 * @return array<string, ReflectionMethod>
 	 */
-	public function getMethods(): array
+	#[Pure] public function getMethods(): array
 	{
-		return $this->methods;
+		return $this->target->getMethods();
 	}
 
 
 	/**
 	 * @param string $method
-	 * @return ReflectionMethod|null
+	 * @return ReflectionMethod
+	 * @throws ReflectionException
 	 */
-	public function getMethod(string $method): ReflectionMethod|null
+	#[Pure] public function getMethod(string $method): ReflectionMethod
 	{
-		return $this->methods[$method] ?? null;
+		return $this->target->getMethod($method);
 	}
 
 
@@ -128,7 +104,7 @@ class Target
 	 */
 	#[Pure] public function getMethodsAttribute(): array
 	{
-		$methods = $this->methods;
+		$methods = $this->target->getMethods();
 
 		$array = [];
 		foreach ($methods as $key => $method) {
@@ -143,28 +119,22 @@ class Target
 	 */
 	#[Pure] public function getPropertyAttribute(): array
 	{
-		return $this->property;
+		return $this->target->getProperties(ReflectionProperty::IS_PRIVATE | ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PUBLIC);
 	}
 
 
 	/**
 	 * @param string $property
 	 * @param string|null $annotation
-	 * @return ReflectionAttribute[]|ReflectionAttribute
+	 * @return array|ReflectionAttribute
+	 * @throws ReflectionException
 	 */
 	#[Pure] public function getMethodAttribute(string $property, ?string $annotation = null): array|ReflectionAttribute
 	{
-		/** @var ReflectionMethod $attributes */
-		$attributes = $this->methods[$property] ?? [];
-		if (!empty($attributes)) {
-			if (empty($annotation)) {
-				return $attributes->getAttributes();
-			}
-			$anno = $attributes->getAttributes($annotation);
-			if (count($anno) > 0) {
-				return $anno[0];
-			}
+		$attributes = $this->target->getMethod($property);
+		if (!empty($annotation)) {
+			return $attributes->getAttributes($annotation);
 		}
-		return [];
+		return $attributes->getAttributes();
 	}
 }
