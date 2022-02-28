@@ -87,14 +87,14 @@ class Target
 	/**
 	 * @param string $method
 	 * @param string $annotation
-	 * @return mixed
+	 * @return null|array
 	 * @throws ReflectionException
 	 */
-	public function getSpecify_annotation(string $method, string $annotation): mixed
+	#[Pure] public function getSpecify_annotation(string $method, string $annotation): ?array
 	{
 		$data = $this->getMethodAttribute($method, $annotation);
 		if (!empty($data)) {
-			return $data->newInstance();
+			return $data;
 		}
 		return null;
 	}
