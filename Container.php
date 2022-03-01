@@ -199,7 +199,11 @@ class Container implements ContainerInterface
 	 */
 	public function propertyInject(ReflectionClass $reflect, $object): mixed
 	{
-		$properties = TargetManager::get($reflect->getName())->getPropertyAttribute();
+		$properties = TargetManager::get($reflect->getName());
+		if (is_null($properties)) {
+			return $object;
+		}
+		$properties = $properties->getPropertyAttribute();
 		foreach ($properties as $property) {
 			$attributes = $property->getAttributes();
 			foreach ($attributes as $attribute) {
