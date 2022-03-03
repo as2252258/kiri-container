@@ -359,7 +359,7 @@ class Container implements ContainerInterface
 				$params[$key] = $parameter->getType();
 			} else {
 				$type = $parameter->getType()->getName();
-				if (is_string($type) && class_exists($type) || isset($this->_interfaces[$type])) {
+				if (class_exists($type) || interface_exists($type)) {
 					$type = Kiri::getDi()->get($type);
 				}
 				$params[$key] = match ($parameter->getType()) {
