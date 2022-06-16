@@ -315,7 +315,7 @@ class Container implements ContainerInterface
 			throw new ReflectionException("Class does not have a function $className::$method");
 		}
 		$className = $reflectMethod->getDeclaringClass()->getName();
-		if (!isset($this->_parameters[$className]) || isset($this->_parameters[$className][$method])) {
+		if (!isset($this->_parameters[$className]) || !isset($this->_parameters[$className][$method])) {
 			return $this->setParameters($className, $method, $this->resolveParameters($reflectMethod));
 		}
 		return $this->_parameters[$className][$method];
