@@ -12,7 +12,7 @@ namespace Kiri\Di;
 use Closure;
 use Exception;
 use Kiri;
-use Psr\Container\ContainerInterface;
+use Kiri\Di\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -186,7 +186,7 @@ class Container implements ContainerInterface
 		if ($construct->getNumberOfParameters() < 1) {
 			return $reflect->newInstance();
 		}
-		$parameters = $this->mergeParam($this->resolveMethodParameters($construct), $dependencies);
+		$parameters = $this->mergeParam($this->resolveParameters($construct), $dependencies);
 		return $reflect->newInstanceArgs($parameters);
 	}
 
@@ -216,10 +216,11 @@ class Container implements ContainerInterface
 
 	/**
 	 * @param $className
-	 * @param $method
+	 * @param string|null $method
 	 * @return array
+	 * @throws ReflectionException
 	 */
-	public function getMethodAttribute($className, $method = null): array
+	public function getMethodAttribute($className, ?string $method = null): array
 	{
 		return TargetManager::get($className)->getMethodAttribute($method);
 	}
@@ -229,6 +230,7 @@ class Container implements ContainerInterface
 	 * @param string $class
 	 * @param string|null $property
 	 * @return ReflectionProperty|ReflectionProperty[]|null
+	 * @throws ReflectionException
 	 */
 	public function getClassReflectionProperty(string $class, string $property = null): ReflectionProperty|null|array
 	{
@@ -286,6 +288,7 @@ class Container implements ContainerInterface
 	 * @param string $class
 	 * @param string $method
 	 * @return ReflectionMethod|null
+	 * @throws ReflectionException
 	 */
 	public function getReflectMethod(string $class, string $method): ?ReflectionMethod
 	{
@@ -294,13 +297,16 @@ class Container implements ContainerInterface
 
 
 	/**
-	 * @param string $className
-	 * @param string $method
+	 * @param string|Closure $method
+	 * @param string|null $className
 	 * @return array|null
 	 * @throws ReflectionException
 	 */
-	public function getMethodParameters(string $className, string $method): ?array
+	public function getArgs(string|Closure $method, ?string $className = null): ?array
 	{
+		if ($method instanceof Closure) {
+			return $this->resolveParameters(new ReflectionFunction($method));
+		}
 		if (isset($this->_parameters[$className]) && isset($this->_parameters[$className][$method])) {
 			return $this->_parameters[$className][$method];
 		}
@@ -309,10 +315,10 @@ class Container implements ContainerInterface
 			throw new ReflectionException("Class does not have a function $className::$method");
 		}
 		$className = $reflectMethod->getDeclaringClass()->getName();
-		if (isset($this->_parameters[$className]) && isset($this->_parameters[$className][$reflectMethod->getName()])) {
-			return $this->_parameters[$className][$reflectMethod->getName()];
+		if (!isset($this->_parameters[$className]) || isset($this->_parameters[$className][$method])) {
+			return $this->setParameters($className, $method, $this->resolveParameters($reflectMethod));
 		}
-		return $this->setParameters($className, $reflectMethod->getName(), $this->resolveMethodParameters($reflectMethod));
+		return $this->_parameters[$className][$method];
 	}
 
 
@@ -332,21 +338,10 @@ class Container implements ContainerInterface
 
 
 	/**
-	 * @param Closure $reflectionMethod
-	 * @return array
-	 * @throws ReflectionException
-	 */
-	public function getFunctionParameters(Closure $reflectionMethod): array
-	{
-		return $this->resolveMethodParameters(new ReflectionFunction($reflectionMethod));
-	}
-
-
-	/**
 	 * @param ReflectionMethod|ReflectionFunction $reflectionMethod
 	 * @return array
 	 */
-	private function resolveMethodParameters(ReflectionMethod|ReflectionFunction $reflectionMethod): array
+	private function resolveParameters(ReflectionMethod|ReflectionFunction $reflectionMethod): array
 	{
 		if ($reflectionMethod->getNumberOfParameters() < 1) {
 			return [];
@@ -387,20 +382,6 @@ class Container implements ContainerInterface
 		return $this->_reflection[$class];
 	}
 
-	/**
-	 * @param $class
-	 */
-	public function unset($class)
-	{
-		if (is_array($class) && isset($class['class'])) {
-			$class = $class['class'];
-		} else if (is_object($class)) {
-			$class = $class::class;
-		}
-		unset(
-			$this->_reflection[$class], $this->_singletons[$class], $this->_constructs[$class]
-		);
-	}
 
 	/**
 	 * @return $this

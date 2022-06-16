@@ -90,7 +90,7 @@ class Target
 	 * @return null|array
 	 * @throws ReflectionException
 	 */
-	#[Pure] public function getSpecify_annotation(string $method, string $annotation): ?array
+	#[Pure] public function searchNote(string $method, string $annotation): ?array
 	{
 		$data = $this->getMethodAttribute($method, $annotation);
 		if (!empty($data)) {
