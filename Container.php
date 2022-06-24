@@ -256,6 +256,7 @@ class Container implements ContainerInterface
 	/**
 	 * @param $class
 	 * @return ReflectionClass
+	 * @throws ReflectionException
 	 */
 	private function resolveDependencies($class): ReflectionClass
 	{
