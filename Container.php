@@ -56,6 +56,14 @@ class Container implements ContainerInterface
 	private array $_interfaces = [];
 
 
+	private static ?ContainerInterface $container = null;
+
+
+	private function __construct()
+	{
+	}
+
+
 	/**
 	 * @param string $id
 	 * @return mixed
@@ -67,6 +75,18 @@ class Container implements ContainerInterface
 			return $this;
 		}
 		return $this->make($id, [], []);
+	}
+
+
+	/**
+	 * @return static
+	 */
+	public static function getInstance(): static
+	{
+		if (static::$container == null) {
+			static::$container = new static();
+		}
+		return static::$container;
 	}
 
 
