@@ -2,6 +2,7 @@
 
 namespace Kiri\Di;
 
+use Exception;
 use Kiri;
 
 
@@ -22,7 +23,7 @@ class LocalService
 	 * @param $name
 	 * @param $define
 	 */
-	public function set($name, $define)
+	public function set($name, $define): void
 	{
 		unset($this->_components[$name]);
 
@@ -34,7 +35,7 @@ class LocalService
 
 
 	/**
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function get(string $name, $throwException = true)
 	{
@@ -48,7 +49,7 @@ class LocalService
 			}
 			return $this->_components[$name] = Kiri::createObject($definition);
 		} else if ($throwException) {
-			throw new \Exception("Unknown component ID: $name");
+			throw new Exception("Unknown component ID: $name");
 		}
 		return null;
 	}
@@ -57,7 +58,7 @@ class LocalService
 	/**
 	 * @param array $components
 	 */
-	public function setComponents(array $components)
+	public function setComponents(array $components): void
 	{
 		foreach ($components as $name => $component) {
 			$this->set($name, $component);
