@@ -11,7 +11,10 @@ use Swoole\Coroutine;
  */
 class Context
 {
-	
+
+	/**
+	 * @var array
+	 */
 	protected static array $_contents = [];
 	
 	
