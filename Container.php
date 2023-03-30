@@ -331,6 +331,9 @@ class Container implements ContainerInterface
 		if (isset($this->_parameters[$className]) && isset($this->_parameters[$className][$method])) {
 			return $this->_parameters[$className][$method];
 		}
+		if (!TargetManager::has($className)) {
+			TargetManager::set($className, $this->getReflect($className));
+		}
 		$reflectMethod = $this->getReflectMethod($className, $method);
 		if (!($reflectMethod instanceof ReflectionMethod)) {
 			throw new ReflectionException("Class does not have a function $className::$method");

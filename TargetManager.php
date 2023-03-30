@@ -9,7 +9,6 @@ class TargetManager
 	private static array $targets = [];
 
 
-
 	/**
 	 * @param string $class
 	 * @return Target|null
@@ -19,6 +18,15 @@ class TargetManager
 		return static::$targets[$class] ?? null;
 	}
 
+
+	/**
+	 * @param string $class
+	 * @return bool
+	 */
+	public static function has(string $class): bool
+	{
+		return isset(static::$targets[$class]) && static::$targets[$class] !== null;
+	}
 
 	/**
 	 * @param string $class
