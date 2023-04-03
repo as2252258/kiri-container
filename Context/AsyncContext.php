@@ -59,12 +59,12 @@ class AsyncContext implements ContextInterface
 	}
 
 	/**
-	 * @param $id
+	 * @param string $id
 	 * @param int $value
 	 * @param int|null $coroutineId
 	 * @return bool|int
 	 */
-	public static function increment($id, int $value = 1, ?int $coroutineId = null): bool|int
+	public static function increment(string $id, int $value = 1, ?int $coroutineId = null): bool|int
 	{
 		if (!isset(static::$context[$id])) {
 			static::$context[$id] = 0;
@@ -73,12 +73,12 @@ class AsyncContext implements ContextInterface
 	}
 
 	/**
-	 * @param $id
+	 * @param string $id
 	 * @param int $value
 	 * @param int|null $coroutineId
 	 * @return bool|int
 	 */
-	public static function decrement($id, int $value = 1, ?int $coroutineId = null): bool|int
+	public static function decrement(string $id, int $value = 1, ?int $coroutineId = null): bool|int
 	{
 		if (!isset(static::$context[$id])) {
 			static::$context[$id] = 0;

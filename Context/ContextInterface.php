@@ -39,21 +39,21 @@ interface ContextInterface
 
 
 	/**
-	 * @param $id
+	 * @param string $id
 	 * @param int $value
 	 * @param $coroutineId
 	 * @return bool|int
 	 */
-	public static function increment($id, int $value = 1, $coroutineId = null): bool|int;
+	public static function increment(string $id, int $value = 1, $coroutineId = null): bool|int;
 
 
 	/**
-	 * @param $id
+	 * @param string $id
 	 * @param int $value
 	 * @param $coroutineId
 	 * @return bool|int
 	 */
-	public static function decrement($id, int $value = 1, $coroutineId = null): bool|int;
+	public static function decrement(string $id, int $value = 1, $coroutineId = null): bool|int;
 
 
 }
