@@ -72,9 +72,9 @@ class CoroutineContext implements ContextInterface
 	 * @param string $id
 	 * @param int $value
 	 * @param int|null $coroutineId
-	 * @return bool|int
+	 * @return int
 	 */
-	public static function increment(string $id, int $value = 1, ?int $coroutineId = null): bool|int
+	public static function increment(string $id, int $value = 1, ?int $coroutineId = null): int
 	{
 		if (is_null($coroutineId)) {
 			$coroutineId = Coroutine::getCid();
@@ -89,9 +89,9 @@ class CoroutineContext implements ContextInterface
 	 * @param string $id
 	 * @param int $value
 	 * @param int|null $coroutineId
-	 * @return bool|int
+	 * @return int
 	 */
-	public static function decrement(string $id, int $value = 1, ?int $coroutineId = null): bool|int
+	public static function decrement(string $id, int $value = 1, ?int $coroutineId = null): int
 	{
 		if (is_null($coroutineId)) {
 			$coroutineId = Coroutine::getCid();
