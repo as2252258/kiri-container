@@ -41,19 +41,19 @@ interface ContextInterface
 	/**
 	 * @param string $id
 	 * @param int $value
-	 * @param null $coroutineId
+	 * @param int|null $coroutineId
 	 * @return int
 	 */
-	public static function increment(string $id, int $value = 1, $coroutineId = null): int;
+	public static function increment(string $id, int $value = 1, ?int $coroutineId = null): int;
 
 
 	/**
 	 * @param string $id
 	 * @param int $value
-	 * @param null $coroutineId
+	 * @param int|null $coroutineId
 	 * @return int
 	 */
-	public static function decrement(string $id, int $value = 1, $coroutineId = null): int;
+	public static function decrement(string $id, int $value = 1, ?int $coroutineId = null): int;
 
 
 }
