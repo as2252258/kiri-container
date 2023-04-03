@@ -32,6 +32,9 @@ class CoroutineContext implements ContextInterface
 	public static function get(string $key, mixed $defaultValue = null, ?int $coroutineId = null): mixed
 	{
 		// TODO: Implement get() method.
+		if (is_null($coroutineId)) {
+			$coroutineId = Coroutine::getCid();
+		}
 		return Coroutine::getContext($coroutineId)[$key] ?? $defaultValue;
 	}
 
@@ -43,6 +46,9 @@ class CoroutineContext implements ContextInterface
 	public static function exists(string $key, ?int $coroutineId = null): bool
 	{
 		// TODO: Implement exists() method.
+		if (is_null($coroutineId)) {
+			$coroutineId = Coroutine::getCid();
+		}
 		return isset(Coroutine::getContext($coroutineId)[$key]);
 	}
 
@@ -54,6 +60,9 @@ class CoroutineContext implements ContextInterface
 	public static function remove(string $key, ?int $coroutineId = null): void
 	{
 		// TODO: Implement remove() method.
+		if (is_null($coroutineId)) {
+			$coroutineId = Coroutine::getCid();
+		}
 		Coroutine::getContext($coroutineId)[$key] = null;
 		unset(Coroutine::getContext($coroutineId)[$key]);
 	}
