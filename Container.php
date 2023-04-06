@@ -12,7 +12,6 @@ namespace Kiri\Di;
 use Closure;
 use Exception;
 use Kiri;
-use Kiri\Di\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -25,45 +24,45 @@ use ReflectionProperty;
  */
 class Container implements ContainerInterface
 {
-
+	
 	/**
 	 * @var array
 	 *
 	 * instance class by className
 	 */
 	private array $_singletons = [];
-
+	
 	/**
 	 * @var ReflectionMethod[]
 	 *
 	 * class new instance construct parameter
 	 */
 	private array $_constructs = [];
-
+	
 	/**
 	 * @var array
 	 *
 	 * implements \ReflectClass
 	 */
 	private array $_reflection = [];
-
-
+	
+	
 	/** @var array */
 	private array $_parameters = [];
-
-
+	
+	
 	/** @var array|string[] */
 	private array $_interfaces = [];
-
-
+	
+	
 	private static ?ContainerInterface $container = null;
-
-
+	
+	
 	private function __construct()
 	{
 	}
-
-
+	
+	
 	/**
 	 * @param string $id
 	 * @return mixed
@@ -76,8 +75,22 @@ class Container implements ContainerInterface
 		}
 		return $this->make($id, [], []);
 	}
-
-
+	
+	
+	/**
+	 * @param $id
+	 * @return mixed
+	 * @throws Exception
+	 */
+	public function copy($id): mixed
+	{
+		if ($id == ContainerInterface::class) {
+			return $this;
+		}
+		return clone $this->make($id, [], []);
+	}
+	
+	
 	/**
 	 * @return static
 	 */
@@ -88,8 +101,8 @@ class Container implements ContainerInterface
 		}
 		return static::$container;
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @param array $constrict
@@ -113,8 +126,8 @@ class Container implements ContainerInterface
 		}
 		return $this->_singletons[$class];
 	}
-
-
+	
+	
 	/**
 	 * @param string $interface
 	 * @param string $class
@@ -123,8 +136,8 @@ class Container implements ContainerInterface
 	{
 		$this->_interfaces[$interface] = $class;
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @return bool
@@ -137,8 +150,8 @@ class Container implements ContainerInterface
 		}
 		return false;
 	}
-
-
+	
+	
 	/**
 	 * @param string $interface
 	 * @param $object
@@ -148,13 +161,13 @@ class Container implements ContainerInterface
 		if (is_string($object)) {
 			$this->_interfaces[$interface] = $object;
 		} else {
-			$className = get_class($object);
+			$className                     = get_class($object);
 			$this->_interfaces[$interface] = $className;
 			$this->_singletons[$className] = $object;
 		}
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @param array $constrict
@@ -166,8 +179,8 @@ class Container implements ContainerInterface
 	{
 		return $this->resolve($class, $constrict, $config);
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @param $constrict
@@ -182,15 +195,15 @@ class Container implements ContainerInterface
 		if (!$reflect->isInstantiable()) {
 			throw new ReflectionException('Class ' . $class . ' cannot be instantiated');
 		}
-
+		
 		$object = $this->newInstance($reflect, $constrict);
-
+		
 		$this->propertyInject($reflect, $object);
-
+		
 		return $this->onAfterInit($object, $config);
 	}
-
-
+	
+	
 	/**
 	 * @param ReflectionClass $reflect
 	 * @param $dependencies
@@ -209,8 +222,8 @@ class Container implements ContainerInterface
 		$parameters = $this->mergeParam($this->resolveParameters($construct), $dependencies);
 		return $reflect->newInstanceArgs($parameters);
 	}
-
-
+	
+	
 	/**
 	 * @param ReflectionClass $reflect
 	 * @param $object
@@ -232,8 +245,8 @@ class Container implements ContainerInterface
 		}
 		return $object;
 	}
-
-
+	
+	
 	/**
 	 * @param $className
 	 * @param string|null $method
@@ -244,8 +257,8 @@ class Container implements ContainerInterface
 	{
 		return TargetManager::get($className)->getMethodAttribute($method);
 	}
-
-
+	
+	
 	/**
 	 * @param string $class
 	 * @param string|null $property
@@ -256,8 +269,8 @@ class Container implements ContainerInterface
 	{
 		return TargetManager::get($class)->getProperty($property);
 	}
-
-
+	
+	
 	/**
 	 * @param $object
 	 * @param $config
@@ -271,8 +284,8 @@ class Container implements ContainerInterface
 		}
 		return $object;
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @return ReflectionClass
@@ -293,8 +306,8 @@ class Container implements ContainerInterface
 		}
 		return $this->_reflection[$class] = $reflect;
 	}
-
-
+	
+	
 	/**
 	 * @param string $class
 	 * @return ReflectionMethod[]
@@ -303,8 +316,8 @@ class Container implements ContainerInterface
 	{
 		return TargetManager::get($class)->getMethods();
 	}
-
-
+	
+	
 	/**
 	 * @param string $class
 	 * @param string $method
@@ -315,8 +328,8 @@ class Container implements ContainerInterface
 	{
 		return TargetManager::get($class)->getMethod($method);
 	}
-
-
+	
+	
 	/**
 	 * @param string|Closure $method
 	 * @param string|null $className
@@ -340,8 +353,8 @@ class Container implements ContainerInterface
 		}
 		return $this->setParameters($className, $method, $this->resolveParameters($reflectMethod));
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @param $method
@@ -355,8 +368,8 @@ class Container implements ContainerInterface
 		}
 		return $this->_parameters[$class][$method] = $parameters;
 	}
-
-
+	
+	
 	/**
 	 * @param ReflectionMethod|ReflectionFunction $reflectionMethod
 	 * @return array
@@ -388,8 +401,8 @@ class Container implements ContainerInterface
 		}
 		return $params;
 	}
-
-
+	
+	
 	/**
 	 * @param $class
 	 * @return ReflectionClass|null
@@ -401,8 +414,8 @@ class Container implements ContainerInterface
 		}
 		return $this->_reflection[$class];
 	}
-
-
+	
+	
 	/**
 	 * @return $this
 	 */
@@ -413,7 +426,7 @@ class Container implements ContainerInterface
 		$this->_constructs = [];
 		return $this;
 	}
-
+	
 	/**
 	 * @param $old
 	 * @param $newParam
@@ -432,7 +445,7 @@ class Container implements ContainerInterface
 		}
 		return $old;
 	}
-
+	
 	/**
 	 * @param string $id
 	 * @return bool
