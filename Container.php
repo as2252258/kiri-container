@@ -100,6 +100,17 @@ class Container implements ContainerInterface
 
 
 	/**
+	 * @param string $interface
+	 * @param object $object
+	 * @return void
+	 */
+	public function bind(string $interface, object $object): void
+	{
+		$this->_singletons[$interface] = $object;
+	}
+
+
+	/**
 	 * @param string $className
 	 * @return ReflectionClass
 	 * @throws ReflectionException
