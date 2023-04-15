@@ -89,6 +89,20 @@ class Container implements ContainerInterface
 
 
 	/**
+	 * @param string $id
+	 * @return void
+	 * @throws ReflectionException
+	 */
+	public function parse(string $id): void
+	{
+		if (isset($this->_singletons[$id])) {
+			return;
+		}
+		$this->make($id);
+	}
+
+
+	/**
 	 * @param string $interface
 	 * @param string $class
 	 * @return void
