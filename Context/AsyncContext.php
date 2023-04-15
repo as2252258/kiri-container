@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Kiri\Di\Context;
 
 class AsyncContext implements ContextInterface
