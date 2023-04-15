@@ -158,7 +158,9 @@ class Container implements ContainerInterface
 		$object = self::configure($reflect->newInstanceArgs($construct), $config);
 
 		$this->resolveProperties($reflect, $object);
-
+		if (method_exists($object, 'init')) {
+			call_user_func([$object, 'init']);
+		}
 		return $object;
 	}
 
