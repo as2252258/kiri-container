@@ -9,449 +9,290 @@ declare(strict_types=1);
 
 namespace Kiri\Di;
 
-use Closure;
-use Exception;
-use Kiri;
+
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionMethod;
-use ReflectionProperty;
+use ReflectionParameter;
 
-/**
- * Class Container
- * @package Kiri\Di
- */
 class Container implements ContainerInterface
 {
-	
+
 	/**
 	 * @var array
 	 *
 	 * instance class by className
 	 */
 	private array $_singletons = [];
-	
-	/**
-	 * @var ReflectionMethod[]
-	 *
-	 * class new instance construct parameter
-	 */
-	private array $_constructs = [];
-	
+
+
 	/**
 	 * @var array
 	 *
 	 * implements \ReflectClass
 	 */
 	private array $_reflection = [];
-	
-	
-	/** @var array */
+
+
+	/**
+	 * @var array
+	 */
 	private array $_parameters = [];
-	
-	
-	/** @var array|string[] */
+
+
+	/**
+	 * @var array
+	 */
 	private array $_interfaces = [];
-	
-	
-	private static ?ContainerInterface $container = null;
-	
-	
+
+
+	private static self|null $container = null;
+
+
 	private function __construct()
 	{
 	}
-	
-	
-	/**
-	 * @param string $id
-	 * @return mixed
-	 * @throws
-	 */
-	public function get(string $id): mixed
-	{
-		if ($id == ContainerInterface::class) {
-			return $this;
-		}
-		return $this->make($id, [], []);
-	}
-	
-	
-	/**
-	 * @param $id
-	 * @return mixed
-	 * @throws Exception
-	 */
-	public function copy($id): mixed
-	{
-		if ($id == ContainerInterface::class) {
-			return $this;
-		}
-		return clone $this->make($id, [], []);
-	}
-	
-	
+
+
 	/**
 	 * @return static
 	 */
-	public static function getInstance(): static
+	public static function instance(): static
 	{
-		if (static::$container == null) {
-			static::$container = new static();
+		if (static::$container === null) {
+			static::$container = new Container();
 		}
 		return static::$container;
 	}
-	
-	
+
+
 	/**
-	 * @param $class
-	 * @param array $constrict
-	 * @param array $config
+	 * @param string $id
 	 * @return mixed
-	 * @throws
+	 * @throws ReflectionException
 	 */
-	public function make($class, array $constrict = [], array $config = []): mixed
+	public function get(string $id): mixed
 	{
-		if ($class == ContainerInterface::class) {
+		if ($id === ContainerInterface::class) {
 			return $this;
 		}
-		if ($this->isInterface($class)) {
-			$class = $this->_interfaces[$class];
-			if (is_null($class)) {
-				throw new Exception('Unknown class mapping ' . $class . '::class');
+		if (!isset($this->_singletons[$id])) {
+			if (isset($this->_interfaces[$id])) {
+				$id = $this->_interfaces[$id];
 			}
+			$this->_singletons[$id] = $this->make($id);
 		}
-		if (!isset($this->_singletons[$class])) {
-			$this->_singletons[$class] = $this->resolve($class, $constrict, $config);
-		}
-		return $this->_singletons[$class];
+		return $this->_singletons[$id];
 	}
-	
-	
+
+
 	/**
 	 * @param string $interface
 	 * @param string $class
+	 * @return void
 	 */
-	public function mapping(string $interface, string $class)
+	public function set(string $interface, string $class): void
 	{
 		$this->_interfaces[$interface] = $class;
 	}
-	
-	
+
+
 	/**
-	 * @param $class
-	 * @return bool
-	 */
-	public function isInterface($class): bool
-	{
-		$reflect = $this->getReflect($class);
-		if ($reflect->isInterface()) {
-			return true;
-		}
-		return false;
-	}
-	
-	
-	/**
-	 * @param string $interface
-	 * @param $object
-	 */
-	public function setBindings(string $interface, $object)
-	{
-		if (is_string($object)) {
-			$this->_interfaces[$interface] = $object;
-		} else {
-			$className                     = get_class($object);
-			$this->_interfaces[$interface] = $className;
-			$this->_singletons[$className] = $object;
-		}
-	}
-	
-	
-	/**
-	 * @param $class
-	 * @param array $constrict
-	 * @param array $config
-	 * @return object
-	 * @throws
-	 */
-	public function create($class, array $constrict = [], array $config = []): object
-	{
-		return $this->resolve($class, $constrict, $config);
-	}
-	
-	
-	/**
-	 * @param $class
-	 * @param $constrict
-	 * @param $config
-	 *
-	 * @return object
-	 * @throws Exception
-	 */
-	private function resolve($class, $constrict, $config): object
-	{
-		$reflect = $this->resolveDependencies($class);
-		if (!$reflect->isInstantiable()) {
-			throw new ReflectionException('Class ' . $class . ' cannot be instantiated');
-		}
-		
-		$object = $this->newInstance($reflect, $constrict);
-		
-		$this->propertyInject($reflect, $object);
-		
-		return $this->onAfterInit($object, $config);
-	}
-	
-	
-	/**
-	 * @param ReflectionClass $reflect
-	 * @param $dependencies
-	 * @return object
-	 * @throws ReflectionException
-	 */
-	private function newInstance(ReflectionClass $reflect, $dependencies): object
-	{
-		if (!isset($this->_constructs[$reflect->getName()])) {
-			return $reflect->newInstance();
-		}
-		$construct = $this->_constructs[$reflect->getName()];
-		if ($construct->getNumberOfParameters() < 1) {
-			return $reflect->newInstance();
-		}
-		$parameters = $this->mergeParam($this->resolveParameters($construct), $dependencies);
-		return $reflect->newInstanceArgs($parameters);
-	}
-	
-	
-	/**
-	 * @param ReflectionClass $reflect
-	 * @param $object
-	 * @return mixed
-	 * @throws Exception
-	 */
-	public function propertyInject(ReflectionClass $reflect, $object): mixed
-	{
-		$properties = TargetManager::get($reflect->getName());
-		if (is_null($properties)) {
-			return $object;
-		}
-		$properties = $properties->getPropertyAttribute();
-		foreach ($properties as $property) {
-			$attributes = $property->getAttributes();
-			foreach ($attributes as $attribute) {
-				$attribute->newInstance()->execute($object, $property);
-			}
-		}
-		return $object;
-	}
-	
-	
-	/**
-	 * @param $className
-	 * @param string|null $method
-	 * @return array
-	 * @throws ReflectionException
-	 */
-	public function getMethodAttribute($className, ?string $method = null): array
-	{
-		return TargetManager::get($className)->getMethodAttribute($method);
-	}
-	
-	
-	/**
-	 * @param string $class
-	 * @param string|null $property
-	 * @return ReflectionProperty|ReflectionProperty[]|null
-	 * @throws ReflectionException
-	 */
-	public function getClassReflectionProperty(string $class, string $property = null): ReflectionProperty|null|array
-	{
-		return TargetManager::get($class)->getProperty($property);
-	}
-	
-	
-	/**
-	 * @param $object
-	 * @param $config
-	 * @return mixed
-	 */
-	private function onAfterInit($object, $config): mixed
-	{
-		Kiri::configure($object, $config);
-		if (method_exists($object, 'init') && is_callable([$object, 'init'])) {
-			call_user_func([$object, 'init']);
-		}
-		return $object;
-	}
-	
-	
-	/**
-	 * @param $class
+	 * @param string $className
 	 * @return ReflectionClass
 	 * @throws ReflectionException
 	 */
-	private function resolveDependencies($class): ReflectionClass
+	public function getReflectionClass(string $className): ReflectionClass
 	{
-		if (isset($this->_reflection[$class])) {
-			return $this->_reflection[$class];
+		if (isset($this->_reflection[$className])) {
+			return $this->_reflection[$className];
 		}
-		$reflect = new ReflectionClass($class);
-		if ($reflect->isAbstract() || $reflect->isTrait() || $reflect->isInterface()) {
-			return $this->_reflection[$class] = $reflect;
-		}
-		$construct = TargetManager::set($class, $reflect)->getConstruct();
-		if (!empty($construct) && $construct->getNumberOfParameters() > 0) {
-			$this->_constructs[$class] = $construct;
-		}
-		return $this->_reflection[$class] = $reflect;
+
+		$class = new ReflectionClass($className);
+
+		return $this->_reflection[$className] = $class;
 	}
-	
-	
+
+
 	/**
-	 * @param string $class
-	 * @return ReflectionMethod[]
+	 * @param string $className
+	 * @param array $construct
+	 * @param array $config
+	 * @return object
+	 * @throws ReflectionException
 	 */
-	public function getReflectMethods(string $class): array
+	public function make(string $className, array $construct = [], array $config = []): object
 	{
-		return TargetManager::get($class)->getMethods();
+		$reflect = $this->getReflectionClass($className);
+		if (count($construct) < 1 && ($constructor = $reflect->getConstructor()) !== null) {
+			$construct = $this->getMethodParams($constructor);
+		}
+
+		$object = self::configure($reflect->newInstanceArgs($construct), $config);
+
+		$this->resolveProperties($reflect, $object);
+
+		return $object;
 	}
-	
-	
+
+
 	/**
-	 * @param string $class
+	 * @param ReflectionClass $getReflectionClass
+	 * @param object $class
+	 * @return void
+	 */
+	public function resolveProperties(ReflectionClass $getReflectionClass, object $class): void
+	{
+		$properties = $getReflectionClass->getProperties();
+		foreach ($properties as $property) {
+			$propertyAttributes = $property->getAttributes();
+
+			foreach ($propertyAttributes as $attribute) {
+				$attribute->newInstance()->dispatch($class, $property->getName());
+			}
+		}
+	}
+
+
+	/**
+	 * @param string $className
 	 * @param string $method
-	 * @return ReflectionMethod|null
+	 * @return ReflectionMethod
 	 * @throws ReflectionException
 	 */
-	public function getReflectMethod(string $class, string $method): ?ReflectionMethod
+	public function getMethod(string $className, string $method): ReflectionMethod
 	{
-		return TargetManager::get($class)->getMethod($method);
+		$reflection = $this->getReflectionClass($className);
+
+		return $reflection->getMethod($method);
 	}
-	
-	
+
+
 	/**
-	 * @param string|Closure $method
-	 * @param string|null $className
-	 * @return array|null
+	 * @param string $className
+	 * @return ReflectionMethod[]
 	 * @throws ReflectionException
 	 */
-	public function getArgs(string|Closure $method, ?string $className = null): ?array
+	public function getMethods(string $className): array
 	{
-		if ($method instanceof Closure) {
-			return $this->resolveParameters(new ReflectionFunction($method));
-		}
-		if (isset($this->_parameters[$className]) && isset($this->_parameters[$className][$method])) {
-			return $this->_parameters[$className][$method];
-		}
-		if (!TargetManager::has($className)) {
-			TargetManager::set($className, $this->getReflect($className));
-		}
-		$reflectMethod = $this->getReflectMethod($className, $method);
-		if (!($reflectMethod instanceof ReflectionMethod)) {
-			throw new ReflectionException("Class does not have a function $className::$method");
-		}
-		return $this->setParameters($className, $method, $this->resolveParameters($reflectMethod));
+		$reflection = $this->getReflectionClass($className);
+
+		return $reflection->getMethods();
 	}
-	
-	
+
+
 	/**
-	 * @param $class
-	 * @param $method
-	 * @param $parameters
-	 * @return mixed
-	 */
-	private function setParameters($class, $method, $parameters): mixed
-	{
-		if (!isset($this->_parameters[$class])) {
-			$this->_parameters[$class] = [];
-		}
-		return $this->_parameters[$class][$method] = $parameters;
-	}
-	
-	
-	/**
-	 * @param ReflectionMethod|ReflectionFunction $reflectionMethod
+	 * @param ReflectionMethod $parameters
 	 * @return array
+	 * @throws ReflectionException
 	 */
-	private function resolveParameters(ReflectionMethod|ReflectionFunction $reflectionMethod): array
+	public function getMethodParams(ReflectionMethod $parameters): array
 	{
-		if ($reflectionMethod->getNumberOfParameters() < 1) {
-			return [];
+		$className = $parameters->getDeclaringClass()->getName();
+		$methodName = $parameters->getName();
+		if (!isset($this->_parameters[$className])) {
+			return $this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
 		}
+		if (!isset($this->_parameters[$className][$methodName])) {
+			$this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
+		}
+		return $this->_parameters[$className][$methodName];
+	}
+
+
+	/**
+	 * @param \Closure $parameters
+	 * @return array
+	 * @throws ReflectionException
+	 */
+	public function getFunctionParams(\Closure $parameters): array
+	{
+		return $this->resolveMethodParams(new ReflectionFunction($parameters));
+	}
+
+
+	/**
+	 * @param ReflectionMethod|ReflectionFunction $parameters
+	 * @return array
+	 * @throws ReflectionException
+	 */
+	private function resolveMethodParams(ReflectionMethod|ReflectionFunction $parameters): array
+	{
 		$params = [];
-		foreach ($reflectionMethod->getParameters() as $key => $parameter) {
-			if ($parameter->isDefaultValueAvailable()) {
-				$params[$key] = $parameter->getDefaultValue();
-			} else if ($parameter->getType() === null) {
-				$params[$key] = $parameter->getType();
-			} else {
-				$type = $parameter->getType()->getName();
-				if (class_exists($type) || interface_exists($type)) {
-					$type = Kiri::getDi()->get($type);
+		if ($parameters->getNumberOfParameters() < 1) {
+			return $params;
+		}
+		$parametersArray = $parameters->getParameters();
+		foreach ($parametersArray as $parameter) {
+			$parameterAttributes = $parameter->getAttributes();
+			if (count($parameterAttributes) < 1) {
+				if ($parameter->isDefaultValueAvailable()) {
+					$value = $parameter->getDefaultValue();
+				} else if ($parameter->getType() === null) {
+					$value = $parameter->getType();
+				} else {
+					$value = $parameter->getType()->getName();
+					if (class_exists($value) || interface_exists($value)) {
+						$value = $this->get($value);
+					} else {
+						$value = $this->getTypeValue($parameter);
+					}
 				}
-				$params[$key] = match ($parameter->getType()) {
-					'string' => '',
-					'int', 'float' => 0,
-					'', null, 'object', 'mixed' => NULL,
-					'bool' => false,
-					default => $type
-				};
+				$params[$parameter->getName()] = $value;
+			} else {
+				$attribute = $parameterAttributes[0]->newInstance();
+
+				$params[$parameter->getName()] = $attribute->dispatch();
 			}
 		}
 		return $params;
 	}
-	
-	
+
+
 	/**
-	 * @param $class
-	 * @return ReflectionClass|null
+	 * @param ReflectionParameter $parameter
+	 * @return string|int|bool|null
 	 */
-	public function getReflect($class): ?ReflectionClass
+	private function getTypeValue(ReflectionParameter $parameter): string|int|bool|null
 	{
-		if (!isset($this->_reflection[$class])) {
-			return $this->resolveDependencies($class);
-		}
-		return $this->_reflection[$class];
+		return match ($parameter->getType()) {
+			'string' => '',
+			'int', 'float' => 0,
+			'', null, 'object', 'mixed' => NULL,
+			'bool' => false,
+			'default' => null
+		};
 	}
-	
-	
+
+
 	/**
-	 * @return $this
+	 * @param object $object
+	 * @param array $config
+	 * @return object
 	 */
-	public function flush(): static
+	public static function configure(object $object, array $config): object
 	{
-		$this->_reflection = [];
-		$this->_singletons = [];
-		$this->_constructs = [];
-		return $this;
-	}
-	
-	/**
-	 * @param $old
-	 * @param $newParam
-	 *
-	 * @return mixed
-	 */
-	private function mergeParam($old, $newParam): array
-	{
-		if (empty($old)) {
-			return $newParam;
-		} else if (empty($newParam)) {
-			return $old;
+		foreach ($config as $key => $value) {
+			if (!property_exists($object, $key)) {
+				continue;
+			}
+			$object->{$key} = $value;
 		}
-		foreach ($newParam as $key => $val) {
-			$old[$key] = $val;
-		}
-		return $old;
+		return $object;
 	}
-	
+
+
 	/**
 	 * @param string $id
 	 * @return bool
 	 */
 	public function has(string $id): bool
 	{
-		return isset($this->_singletons[$id]) || isset($this->_interfaces[$id]);
+		// TODO: Implement has() method.
+		return isset($this->_singletons[$id]) && isset($this->_reflection[$id]);
 	}
+
+
 }
