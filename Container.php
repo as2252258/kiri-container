@@ -160,7 +160,7 @@ class Container implements ContainerInterface
 		$object = self::configure($reflect->newInstanceArgs($construct), $config);
 
 		$this->resolveProperties($reflect, $object);
-		if ($constructorHandler === null && method_exists($object, 'init')) {
+		if (method_exists($object, 'init') && $className !== 'Symfony\Component\Console\Application') {
 			call_user_func([$object, 'init']);
 		}
 		return $object;
