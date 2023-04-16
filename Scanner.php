@@ -36,7 +36,7 @@ class Scanner extends Component
 	{
 		$container = Container::instance();
 		foreach ($this->files as $file) {
-			$class = $namespace . '\\' . $this->rename($file);
+			$class = $this->rename($file);
 			if (file_exists($class)) {
 				error('Please follow the PSR-4 specification to write code.' . $class);
 				continue;
@@ -58,7 +58,6 @@ class Scanner extends Component
 			}
 			return ucfirst($value);
 		});
-		array_shift($filter);
 		return implode('\\', $filter);
 	}
 
@@ -76,7 +75,7 @@ class Scanner extends Component
 			}
 			if ($value->isDir()) {
 				$this->load_dir($value->getRealPath());
-			} else if ($value->getExtension() == '.php') {
+			} else if ($value->getExtension() == 'php') {
 				$this->load_file($value);
 			}
 		}
@@ -91,7 +90,7 @@ class Scanner extends Component
 	{
 		try {
 			require_once "$path";
-			$path = str_replace($_SERVER['HOME'], '', $path);
+			$path = str_replace($_SERVER['PWD'], '', $path);
 			$path = str_replace('.php', '', $path);
 			$this->files[] = $path;
 		} catch (\Throwable $throwable) {
