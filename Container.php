@@ -72,6 +72,7 @@ class Container implements ContainerInterface
 	 * @param string $id
 	 * @return mixed
 	 * @throws ReflectionException
+	 * @throws \Exception
 	 */
 	public function get(string $id): mixed
 	{
@@ -83,6 +84,9 @@ class Container implements ContainerInterface
 				$id = $this->_interfaces[$id];
 			}
 			$this->_singletons[$id] = $this->make($id);
+			if (!$this->_singletons[$id]) {
+				throw new \Exception('Class that cannot be instantiated。');
+			}
 		}
 		return $this->_singletons[$id];
 	}
@@ -126,16 +130,19 @@ class Container implements ContainerInterface
 
 	/**
 	 * @param string $className
-	 * @return ReflectionClass
+	 * @return ReflectionClass|null
 	 * @throws ReflectionException
 	 */
-	public function getReflectionClass(string $className): ReflectionClass
+	public function getReflectionClass(string $className): ?ReflectionClass
 	{
 		if (isset($this->_reflection[$className])) {
 			return $this->_reflection[$className];
 		}
 
 		$class = new ReflectionClass($className);
+		if (!$class->isInstantiable()) {
+			return null;
+		}
 
 		return $this->_reflection[$className] = $class;
 	}
@@ -145,12 +152,14 @@ class Container implements ContainerInterface
 	 * @param string $className
 	 * @param array $construct
 	 * @param array $config
-	 * @return object
+	 * @return object|null
 	 * @throws ReflectionException
 	 */
-	public function make(string $className, array $construct = [], array $config = []): object
+	public function make(string $className, array $construct = [], array $config = []): ?object
 	{
-		$reflect = $this->getReflectionClass($className);
+		if (($reflect = $this->getReflectionClass($className)) === null) {
+			return null;
+		}
 
 		$constructorHandler = $reflect->getConstructor();
 		if (count($construct) < 1 && $constructorHandler !== null) {
