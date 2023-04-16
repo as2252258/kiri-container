@@ -252,6 +252,8 @@ class Container implements ContainerInterface
 			return $params;
 		}
 		$parametersArray = $parameters->getParameters();
+
+		$className = $parameters->getDeclaringClass()->getName();
 		foreach ($parametersArray as $parameter) {
 			$parameterAttributes = $parameter->getAttributes();
 			if (count($parameterAttributes) < 1) {
@@ -271,7 +273,7 @@ class Container implements ContainerInterface
 			} else {
 				$attribute = $parameterAttributes[0]->newInstance();
 
-				$params[$parameter->getName()] = $attribute->dispatch();
+				$params[$parameter->getName()] = $attribute->dispatch($className, $parameters->getName());
 			}
 		}
 		return $params;
