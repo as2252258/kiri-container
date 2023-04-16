@@ -168,13 +168,24 @@ class Container implements ContainerInterface
 
 		$object = self::configure($reflect->newInstanceArgs($construct), $config);
 
+		return $this->inject($object, $reflect);
+	}
+
+
+	/**
+	 * @param object $object
+	 * @param ReflectionClass $reflect
+	 * @return object
+	 */
+	private function inject(object $object, ReflectionClass $reflect): object
+	{
 		$targetAttributes = $reflect->getAttributes();
 		foreach ($targetAttributes as $attribute) {
 			$attribute->newInstance()->dispatch($object);
 		}
 
 		$this->resolveProperties($reflect, $object);
-		if (method_exists($object, 'init') && $className !== 'Symfony\Component\Console\Application') {
+		if (method_exists($object, 'init') && $object::class !== 'Symfony\Component\Console\Application') {
 			call_user_func([$object, 'init']);
 		}
 		return $object;
