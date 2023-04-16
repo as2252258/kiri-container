@@ -181,6 +181,9 @@ class Container implements ContainerInterface
 	{
 		$targetAttributes = $reflect->getAttributes();
 		foreach ($targetAttributes as $attribute) {
+			if (!class_exists($attribute->getName())) {
+				continue;
+			}
 			$attribute->newInstance()->dispatch($object);
 		}
 
@@ -204,6 +207,9 @@ class Container implements ContainerInterface
 			$propertyAttributes = $property->getAttributes();
 
 			foreach ($propertyAttributes as $attribute) {
+				if (!class_exists($attribute->getName())) {
+					continue;
+				}
 				$attribute->newInstance()->dispatch($class, $property->getName());
 			}
 		}
