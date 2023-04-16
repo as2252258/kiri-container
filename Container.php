@@ -168,6 +168,11 @@ class Container implements ContainerInterface
 
 		$object = self::configure($reflect->newInstanceArgs($construct), $config);
 
+		$targetAttributes = $reflect->getAttributes();
+		foreach ($targetAttributes as $attribute) {
+			$attribute->newInstance()->dispatch($object);
+		}
+
 		$this->resolveProperties($reflect, $object);
 		if (method_exists($object, 'init') && $className !== 'Symfony\Component\Console\Application') {
 			call_user_func([$object, 'init']);
