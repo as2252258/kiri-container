@@ -25,7 +25,7 @@ class ContainerParams implements InjectParameterInterface
 	 * @return mixed|null
 	 * @throws \Exception
 	 */
-	public function dispatch(): mixed
+	public function dispatch(object $class, string $method): mixed
 	{
 		return Container::instance()->get($this->value);
 	}

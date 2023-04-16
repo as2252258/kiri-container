@@ -7,6 +7,11 @@ interface InjectParameterInterface
 {
 
 
-	public function dispatch(): mixed;
+	/**
+	 * @param object $class
+	 * @param string $method
+	 * @return mixed
+	 */
+	public function dispatch(object $class, string $method): mixed;
 
 }

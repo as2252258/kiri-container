@@ -27,7 +27,7 @@ class ServiceParams implements InjectParameterInterface
 	 * @return mixed|null
 	 * @throws Exception
 	 */
-	public function dispatch(): mixed
+	public function dispatch(object $class, string $method): mixed
 	{
 		$service = Container::instance()->get(LocalService::class);
 
