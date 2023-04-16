@@ -76,7 +76,7 @@ class Scanner extends Component
 			if ($value->isDir()) {
 				$this->load_dir($value->getRealPath());
 			} else if ($value->getExtension() == 'php') {
-				$this->load_file($value);
+				$this->load_file($value->getRealPath());
 			}
 		}
 	}
