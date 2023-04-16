@@ -58,7 +58,7 @@ class Scanner extends Component
 			}
 			return ucfirst($value);
 		});
-		return implode('\\', $filter);
+		return ucfirst(implode('\\', $filter));
 	}
 
 
