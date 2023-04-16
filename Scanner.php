@@ -70,7 +70,7 @@ class Scanner extends Component
 	{
 		$dir = new \DirectoryIterator($path);
 		foreach ($dir as $value) {
-			if ($value->isDot() || !str_starts_with($value->getFilename(), '.')) {
+			if ($value->isDot() || str_starts_with($value->getFilename(), '.')) {
 				continue;
 			}
 			if ($value->isDir()) {
