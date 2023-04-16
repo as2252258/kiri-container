@@ -151,14 +151,16 @@ class Container implements ContainerInterface
 	public function make(string $className, array $construct = [], array $config = []): object
 	{
 		$reflect = $this->getReflectionClass($className);
-		if (count($construct) < 1 && ($constructor = $reflect->getConstructor()) !== null) {
-			$construct = $this->getMethodParams($constructor);
+
+		$constructorHandler = $reflect->getConstructor();
+		if (count($construct) < 1 && $constructorHandler !== null) {
+			$construct = $this->getMethodParams($constructorHandler);
 		}
 
 		$object = self::configure($reflect->newInstanceArgs($construct), $config);
 
 		$this->resolveProperties($reflect, $object);
-		if (method_exists($object, 'init') && $className !== 'Symfony\Component\Console\Application') {
+		if ($constructorHandler === null && method_exists($object, 'init')) {
 			call_user_func([$object, 'init']);
 		}
 		return $object;
