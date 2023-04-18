@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Kiri\Di;
 
 
+use Kiri\Router\Interface\ValidatorInterface;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
@@ -207,7 +208,8 @@ class Container implements ContainerInterface
 			$propertyAttributes = $property->getAttributes();
 
 			foreach ($propertyAttributes as $attribute) {
-				if (!class_exists($attribute->getName())) {
+				if (!class_exists($attribute->getName()) ||
+					in_array(ValidatorInterface::class, class_implements($attribute->getName()))) {
 					continue;
 				}
 				$attribute->newInstance()->dispatch($class, $property->getName());
