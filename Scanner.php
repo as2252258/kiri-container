@@ -7,6 +7,7 @@ namespace Kiri\Di;
 
 use Exception;
 use Kiri\Abstracts\Component;
+use Kiri\Abstracts\Config;
 use ReflectionException;
 
 class Scanner extends Component
@@ -69,11 +70,15 @@ class Scanner extends Component
 	private function load_dir(string $path): void
 	{
 		$dir = new \DirectoryIterator($path);
+		$skip = Config::get('scanner.skip', []);
 		foreach ($dir as $value) {
 			if ($value->isDot() || str_starts_with($value->getFilename(), '.')) {
 				continue;
 			}
 			if ($value->isDir()) {
+				if (in_array($value->getRealPath() . '/', $skip)) {
+					continue;
+				}
 				$this->load_dir($value->getRealPath());
 			} else if ($value->getExtension() == 'php') {
 				$this->load_file($value->getRealPath());
