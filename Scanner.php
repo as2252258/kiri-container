@@ -99,7 +99,7 @@ class Scanner extends Component
 			$path = str_replace('.php', '', $path);
 			$this->files[] = $path;
 		} catch (\Throwable $throwable) {
-			error($throwable->getMessage(), [$throwable]);
+			error($throwable);
 		}
 	}
 
