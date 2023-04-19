@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Kiri\Di;
 
 
+use Kiri\Di\Interface\InjectProxyInterface;
 use Kiri\Router\Interface\ValidatorInterface;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -185,7 +186,11 @@ class Container implements ContainerInterface
 			if (!class_exists($attribute->getName())) {
 				continue;
 			}
-			$attribute->newInstance()->dispatch($object);
+			if ($object instanceof InjectProxyInterface) {
+				$attribute->newInstance()->dispatch($reflect->getFileName(), $object);
+			} else {
+				$attribute->newInstance()->dispatch($object);
+			}
 		}
 
 		$this->resolveProperties($reflect, $object);
@@ -204,15 +209,20 @@ class Container implements ContainerInterface
 	public function resolveProperties(ReflectionClass $getReflectionClass, object $class): void
 	{
 		$properties = $getReflectionClass->getProperties();
+
+		$filename = $getReflectionClass->getFileName();
 		foreach ($properties as $property) {
 			$propertyAttributes = $property->getAttributes();
-
 			foreach ($propertyAttributes as $attribute) {
 				if (!class_exists($attribute->getName()) ||
 					in_array(ValidatorInterface::class, class_implements($attribute->getName()))) {
 					continue;
 				}
-				$attribute->newInstance()->dispatch($class, $property->getName());
+				if ($class instanceof InjectProxyInterface) {
+					$attribute->newInstance()->dispatch($filename, $class, $property->getName());
+				} else {
+					$attribute->newInstance()->dispatch($class, $property->getName());
+				}
 			}
 		}
 	}
@@ -280,7 +290,7 @@ class Container implements ContainerInterface
 	 * @return array
 	 * @throws ReflectionException
 	 */
-	private function resolveMethodParams(ReflectionMethod|ReflectionFunction $parameters): array
+	public function resolveMethodParams(ReflectionMethod|ReflectionFunction $parameters): array
 	{
 		$params = [];
 		if ($parameters->getNumberOfParameters() < 1) {
