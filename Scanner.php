@@ -8,6 +8,7 @@ namespace Kiri\Di;
 use Exception;
 use Kiri\Abstracts\Component;
 use Kiri\Abstracts\Config;
+use Kiri\Di\Inject\Skip;
 use ReflectionException;
 
 class Scanner extends Component
@@ -38,8 +39,13 @@ class Scanner extends Component
 		$container = Container::instance();
 		foreach ($this->files as $file) {
 			$class = $this->rename($file);
-			if (file_exists($class)) {
+			if (!class_exists($class)) {
 				error('Please follow the PSR-4 specification to write code.' . $class);
+				continue;
+			}
+			$reflect = $container->getReflectionClass($class);
+			$data = $reflect->getAttributes(Skip::class);
+			if (count($data) > 0) {
 				continue;
 			}
 			$container->parse($class);
