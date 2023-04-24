@@ -39,7 +39,7 @@ class Context
 	 */
 	public static function inCoroutine(): bool
 	{
-		return Coroutine::getCid() > -1;
+		return class_exists(Coroutine::class) && Coroutine::getCid() > -1;
 	}
 
 }
