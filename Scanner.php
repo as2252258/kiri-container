@@ -44,11 +44,13 @@ class Scanner extends Component
 				continue;
 			}
 			$reflect = $container->getReflectionClass($class);
-			$data = $reflect->getAttributes(Skip::class);
-			if (count($data) > 0) {
-				continue;
+			if ($reflect->isInstantiable()) {
+				$data = $reflect->getAttributes(Skip::class);
+				if (count($data) > 0) {
+					continue;
+				}
+				$container->parse($class);
 			}
-			$container->parse($class);
 		}
 	}
 
