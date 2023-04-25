@@ -15,6 +15,9 @@ class Scanner extends Component
 {
 
 
+	/**
+	 * @var array
+	 */
 	private array $files = [];
 
 
