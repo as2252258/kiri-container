@@ -132,19 +132,16 @@ class Container implements ContainerInterface
 
 	/**
 	 * @param string $className
-	 * @return ReflectionClass|null
+	 * @return ReflectionClass
 	 * @throws ReflectionException
 	 */
-	public function getReflectionClass(string $className): ?ReflectionClass
+	public function getReflectionClass(string $className): ReflectionClass
 	{
 		if (isset($this->_reflection[$className])) {
 			return $this->_reflection[$className];
 		}
 
 		$class = new ReflectionClass($className);
-		if (!$class->isInstantiable()) {
-			return null;
-		}
 
 		return $this->_reflection[$className] = $class;
 	}
@@ -159,8 +156,9 @@ class Container implements ContainerInterface
 	 */
 	public function make(string $className, array $construct = [], array $config = []): ?object
 	{
-		if (($reflect = $this->getReflectionClass($className)) === null) {
-			return null;
+		$reflect = $this->getReflectionClass($className);
+		if (!$reflect->isInstantiable()) {
+			throw new ReflectionException('Class ' . $className . ' cannot be instantiated');
 		}
 
 		$constructorHandler = $reflect->getConstructor();
