@@ -76,7 +76,7 @@ class Container implements ContainerInterface
      * @throws ReflectionException
      * @throws \Exception
      */
-    public function get(string $id): mixed
+    public function get(string $id): object
     {
         if ($id === ContainerInterface::class) {
             return $this;
