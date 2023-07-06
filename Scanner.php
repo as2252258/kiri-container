@@ -24,6 +24,7 @@ class Scanner extends Component
     /**
      * @param string $path
      * @return void
+     * @throws ReflectionException
      */
     public function read(string $path): void
     {
