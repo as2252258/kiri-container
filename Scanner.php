@@ -44,7 +44,7 @@ class Scanner extends Component
         foreach ($this->files as $file) {
             $class = $this->rename($file);
             if (!class_exists($class)) {
-                error('Please follow the PSR-4 specification to write code.' . $class);
+//                error('Please follow the PSR-4 specification to write code.' . $class);
                 continue;
             }
             $reflect = $container->getReflectionClass($class);
