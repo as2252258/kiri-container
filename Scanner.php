@@ -7,7 +7,6 @@ namespace Kiri\Di;
 
 use Exception;
 use Kiri\Abstracts\Component;
-use Kiri\Config\ConfigProvider;
 use Kiri\Di\Inject\Skip;
 use ReflectionException;
 
