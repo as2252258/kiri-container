@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Kiri\Di;
 
 
+use Exception;
 use Kiri\Di\Interface\InjectProxyInterface;
 use Kiri\Router\Interface\ValidatorInterface;
 use Psr\Container\ContainerInterface;
@@ -53,6 +54,9 @@ class Container implements ContainerInterface
     private static self|null $container = null;
 
 
+    /**
+     *
+     */
     private function __construct()
     {
     }
@@ -74,7 +78,7 @@ class Container implements ContainerInterface
      * @param string $id
      * @return mixed
      * @throws ReflectionException
-     * @throws \Exception
+     * @throws Exception
      */
     public function get(string $id): object
     {
@@ -87,7 +91,7 @@ class Container implements ContainerInterface
             }
             $this->_singletons[$id] = $this->make($id);
             if (!$this->_singletons[$id]) {
-                throw new \Exception('Class that cannot be instantiated。');
+                throw new Exception('Class that cannot be instantiated。');
             }
         }
         return $this->_singletons[$id];
