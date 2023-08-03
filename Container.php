@@ -116,7 +116,6 @@ class Container implements ContainerInterface
             }
             $attributes = $method->getAttributes();
             foreach ($attributes as $attribute) {
-                var_dump($attribute->getName());
                 $attribute->newInstance()->dispatch($object, $method->getName());
             }
         }
