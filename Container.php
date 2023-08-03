@@ -287,49 +287,6 @@ class Container implements ContainerInterface
     }
 
 
-//    public function resolveMethodParams(ReflectionMethod|ReflectionFunction $parameters): array
-//    {
-//        $params = [];
-//        $numOfParameters = $parameters->getNumberOfParameters();
-//        if ($numOfParameters < 1) {
-//            return $params;
-//        }
-//
-//        foreach ($parameters->getParameters() as $parameter) {
-//            $value = $this->getParameterValue($parameter);
-//            $params[$parameter->getName()] = $value;
-//        }
-//
-//        return $params;
-//    }
-//
-//    private function getParameterValue(ReflectionParameter $parameter)
-//    {
-//        $parameterAttributes = $parameter->getAttributes();
-//        if (count($parameterAttributes) > 0) {
-//            $attribute = $parameterAttributes[0]->newInstance();
-//            return $attribute->dispatch($parameter->getDeclaringClass()->getName(), $parameter->getDeclaringFunction()->getName());
-//        }
-//
-//        if ($parameter->isDefaultValueAvailable()) {
-//            return $parameter->getDefaultValue();
-//        }
-//
-//        $type = $parameter->getType();
-//
-//        if ($type === null) {
-//            return null;
-//        }
-//
-//        $value = $type->getName();
-//        if (class_exists($value) || interface_exists($value)) {
-//            return $this->get($value);
-//        }
-//
-//        return $this->getTypeValue($parameter);
-//    }
-
-
     /**
      * @param ReflectionMethod|ReflectionFunction $parameters
      * @return array
