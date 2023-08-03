@@ -100,25 +100,15 @@ class Container implements ContainerInterface
 
     /**
      * @param string $id
-     * @return void
+     * @return object
      * @throws ReflectionException
      */
-    public function parse(string $id): void
+    public function parse(string $id): object
     {
         if (isset($this->_singletons[$id])) {
-            return;
+            return $this->_singletons[$id];
         }
-        $object = $this->make($id);
-        $methods = $this->getReflectionClass($id);
-        foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic() || $method->getDeclaringClass()->getName() != $id) {
-                continue;
-            }
-            $attributes = $method->getAttributes();
-            foreach ($attributes as $attribute) {
-                $attribute->newInstance()->dispatch($object, $method->getName());
-            }
-        }
+        return $this->make($id);
     }
 
 

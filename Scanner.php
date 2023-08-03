@@ -9,6 +9,7 @@ use Exception;
 use Kiri\Abstracts\Component;
 use Kiri\Di\Inject\Skip;
 use ReflectionException;
+use ReflectionMethod;
 
 class Scanner extends Component
 {
@@ -51,7 +52,18 @@ class Scanner extends Component
                 if (count($data) > 0) {
                     continue;
                 }
-                $container->parse($class);
+                $object = $container->parse($class);
+
+                $methods = $container->getReflectionClass($class);
+                foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                    if ($method->isStatic() || $method->getDeclaringClass()->getName() != $class) {
+                        continue;
+                    }
+                    $attributes = $method->getAttributes();
+                    foreach ($attributes as $attribute) {
+                        $attribute->newInstance()->dispatch($object, $method->getName());
+                    }
+                }
             }
         }
     }
