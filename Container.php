@@ -108,7 +108,17 @@ class Container implements ContainerInterface
         if (isset($this->_singletons[$id])) {
             return;
         }
-        $this->make($id);
+        $object = $this->make($id);
+        $methods = $this->getReflectionClass($id);
+        foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->isStatic()) {
+                continue;
+            }
+            $attributes = $method->getAttributes();
+            foreach ($attributes as $attribute) {
+                $attribute->newInstance()->dispatch($object, $method->getName());
+            }
+        }
     }
 
 
@@ -377,11 +387,11 @@ class Container implements ContainerInterface
     private function getTypeValue(ReflectionParameter $parameter): string|int|bool|null
     {
         return match ($parameter->getType()) {
-            'string' => '',
-            'int', 'float' => 0,
+            'string'                    => '',
+            'int', 'float'              => 0,
             '', null, 'object', 'mixed' => NULL,
-            'bool' => false,
-            'default' => null
+            'bool'                      => false,
+            'default'                   => null
         };
     }
 
