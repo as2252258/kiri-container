@@ -111,11 +111,12 @@ class Container implements ContainerInterface
         $object = $this->make($id);
         $methods = $this->getReflectionClass($id);
         foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic()) {
+            if ($method->isStatic() || $method->getDeclaringClass()->getName() != $id) {
                 continue;
             }
             $attributes = $method->getAttributes();
             foreach ($attributes as $attribute) {
+                var_dump($attribute->getName());
                 $attribute->newInstance()->dispatch($object, $method->getName());
             }
         }
