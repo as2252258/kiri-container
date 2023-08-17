@@ -42,33 +42,28 @@ class Scanner extends Component
     {
         $container = Container::instance();
         foreach ($this->files as $file) {
-            var_dump($file);
-            try {
-                $class = $this->rename($file);
-                if (!class_exists($class)) {
+            $class = $this->rename($file);
+            if (!class_exists($class)) {
+                continue;
+            }
+            $reflect = $container->getReflectionClass($class);
+            if ($reflect->isInstantiable()) {
+                $data = $reflect->getAttributes(Skip::class);
+                if (count($data) > 0) {
                     continue;
                 }
-                $reflect = $container->getReflectionClass($class);
-                if ($reflect->isInstantiable()) {
-                    $data = $reflect->getAttributes(Skip::class);
-                    if (count($data) > 0) {
+                $object = $container->parse($class);
+
+                $methods = $container->getReflectionClass($class);
+                foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                    if ($method->isStatic() || $method->getDeclaringClass()->getName() != $class) {
                         continue;
                     }
-                    $object = $container->parse($class);
-
-                    $methods = $container->getReflectionClass($class);
-                    foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                        if ($method->isStatic() || $method->getDeclaringClass()->getName() != $class) {
-                            continue;
-                        }
-                        $attributes = $method->getAttributes();
-                        foreach ($attributes as $attribute) {
-                            $attribute->newInstance()->dispatch($object, $method->getName());
-                        }
+                    $attributes = $method->getAttributes();
+                    foreach ($attributes as $attribute) {
+                        $attribute->newInstance()->dispatch($object, $method->getName());
                     }
                 }
-            }catch (\Throwable $exception) {
-                error($exception);
             }
         }
     }
