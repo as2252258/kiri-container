@@ -42,6 +42,7 @@ class Scanner extends Component
     {
         $container = Container::instance();
         foreach ($this->files as $file) {
+            var_dump($file);
             try {
                 $class = $this->rename($file);
                 if (!class_exists($class)) {
