@@ -5,6 +5,10 @@ namespace Kiri\Di\Interface;
 
 use Psr\Http\Message\ResponseInterface;
 
+
+/**
+ * Response Emitter Interface
+ */
 interface ResponseEmitterInterface
 {
 
