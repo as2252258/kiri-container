@@ -9,12 +9,13 @@ interface ResponseEmitterInterface
 {
 
 
-	/**
-	 * @param ResponseInterface $proxy
-	 * @param object $response
-	 * @return void
-	 */
-	public function sender(ResponseInterface $proxy, object $response): void;
+    /**
+     * @param ResponseInterface $proxy
+     * @param object $response
+     * @param object $request
+     * @return void
+     */
+	public function sender(ResponseInterface $proxy, object $response, object $request): void;
 
 
 }
