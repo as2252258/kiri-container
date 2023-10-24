@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kiri\Di\Inject;
 
 
+use Exception;
 use Kiri\Di\Container;
 use Kiri\Di\Interface\InjectParameterInterface;
 
@@ -23,7 +24,7 @@ class ContainerParams implements InjectParameterInterface
 
 	/**
 	 * @return mixed|null
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function dispatch(string $class, string $method): mixed
 	{

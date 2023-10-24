@@ -7,6 +7,11 @@ interface InjectPropertyInterface
 {
 
 
+    /**
+     * @param object $class
+     * @param string $property
+     * @return void
+     */
 	public function dispatch(object $class, string $property): void;
 
 }
