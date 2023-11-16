@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Kiri\Di;
 
 
+use Closure;
 use Exception;
 use Kiri\Di\Interface\InjectProxyInterface;
 use Kiri\Router\Interface\ValidatorInterface;
@@ -264,7 +265,7 @@ class Container implements ContainerInterface
      */
     public function getMethodParams(ReflectionMethod $parameters): array
     {
-        $className = $parameters->getDeclaringClass()->getName();
+        $className  = $parameters->getDeclaringClass()->getName();
         $methodName = $parameters->getName();
         if (!isset($this->_parameters[$className])) {
             return $this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
@@ -277,11 +278,11 @@ class Container implements ContainerInterface
 
 
     /**
-     * @param \Closure $parameters
+     * @param Closure $parameters
      * @return array
      * @throws ReflectionException
      */
-    public function getFunctionParams(\Closure $parameters): array
+    public function getFunctionParams(Closure $parameters): array
     {
         return $this->resolveMethodParams(new ReflectionFunction($parameters));
     }
