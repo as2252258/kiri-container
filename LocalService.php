@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Kiri\Di;
 
+use Closure;
 use Exception;
 use Kiri;
 
@@ -20,17 +21,18 @@ class LocalService
 	private array $_definition = [];
 
 
-	/**
-	 * @param $name
-	 * @param $define
-	 */
+    /**
+     * @param $name
+     * @param $define
+     * @throws Exception
+     */
 	public function set($name, $define): void
 	{
 		unset($this->_components[$name]);
 
 		$this->_definition[$name] = $define;
-		if (is_object($define) || $define instanceof \Closure) {
-			$this->_components[$name] = $define;
+		if (is_object($define) || $define instanceof Closure) {
+			$this->_components[$name] = $this->get($name, $define);
 		}
 	}
 
@@ -45,7 +47,7 @@ class LocalService
 		}
 		if (isset($this->_definition[$name])) {
 			$definition = $this->_definition[$name];
-			if (is_object($definition) && !$definition instanceof \Closure) {
+			if (is_object($definition) && !$definition instanceof Closure) {
 				return $this->_components[$name] = $definition;
 			}
 			return $this->_components[$name] = Kiri::createObject($definition);
@@ -56,9 +58,10 @@ class LocalService
 	}
 
 
-	/**
-	 * @param array $components
-	 */
+    /**
+     * @param array $components
+     * @throws Exception
+     */
 	public function setComponents(array $components): void
 	{
 		foreach ($components as $name => $component) {
