@@ -86,14 +86,15 @@ class Container implements ContainerInterface
         if ($id === ContainerInterface::class) {
             return $this;
         }
-        if (!isset($this->_singletons[$id])) {
-            if (isset($this->_interfaces[$id])) {
-                $id = $this->_interfaces[$id];
-            }
-            $this->_singletons[$id] = $this->make($id);
-            if (!$this->_singletons[$id]) {
-                throw new Exception('Class that cannot be instantiated。');
-            }
+        if (isset($this->_singletons[$id])) {
+            return $this->_singletons[$id];
+        }
+        if (isset($this->_interfaces[$id])) {
+            $id = $this->_interfaces[$id];
+        }
+        $this->_singletons[$id] = $this->make($id);
+        if (!$this->_singletons[$id]) {
+            throw new Exception('Class that cannot be instantiated。');
         }
         return $this->_singletons[$id];
     }
@@ -106,10 +107,10 @@ class Container implements ContainerInterface
      */
     public function parse(string $id): object
     {
-        if (isset($this->_singletons[$id])) {
-            return $this->_singletons[$id];
+        if (!isset($this->_singletons[$id])) {
+            return $this->make($id);
         }
-        return $this->make($id);
+        return $this->_singletons[$id];
     }
 
 
@@ -195,7 +196,6 @@ class Container implements ContainerInterface
                 $attribute->newInstance()->dispatch($object);
             }
         }
-
         $this->resolveProperties($reflect, $object);
         if (method_exists($object, 'init') && $object::class !== 'Symfony\Component\Console\Application') {
             call_user_func([$object, 'init']);
@@ -217,8 +217,7 @@ class Container implements ContainerInterface
         foreach ($properties as $property) {
             $propertyAttributes = $property->getAttributes();
             foreach ($propertyAttributes as $attribute) {
-                if (!class_exists($attribute->getName()) ||
-                    in_array(ValidatorInterface::class, class_implements($attribute->getName()))) {
+                if (!class_exists($attribute->getName()) || in_array(ValidatorInterface::class, class_implements($attribute->getName()))) {
                     continue;
                 }
                 if ($class instanceof InjectProxyInterface) {
