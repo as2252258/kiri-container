@@ -61,6 +61,9 @@ class Scanner extends Component
                     }
                     $attributes = $method->getAttributes();
                     foreach ($attributes as $attribute) {
+                        if (!class_exists($attribute->getName())) {
+                            continue;
+                        }
                         $attribute->newInstance()->dispatch($object, $method->getName());
                     }
                 }
