@@ -19,7 +19,7 @@ interface ResponseEmitterInterface
      * @param object $request
      * @return void
      */
-	public function xxxxxxxxxxxxxxxxxxxxxxxxxSender(ResponseInterface $proxy, object $response, object $request): void;
+	public function response(ResponseInterface $proxy, object $response, object $request): void;
 
 
 }
