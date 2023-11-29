@@ -78,7 +78,6 @@ class Container implements ContainerInterface
     /**
      * @param string $id
      * @return mixed
-     * @throws ReflectionException
      * @throws Exception
      */
     public function get(string $id): object
