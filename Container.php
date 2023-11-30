@@ -127,11 +127,12 @@ class Container implements ContainerInterface
     /**
      * @param string $interface
      * @param object $object
-     * @return void
+     * @return object
      */
-    public function bind(string $interface, object $object): void
+    public function bind(string $interface, object $object): object
     {
         $this->_singletons[$interface] = $object;
+        return $object;
     }
 
 
