@@ -21,6 +21,10 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
 
+
+/**
+ * Class Container
+ */
 class Container implements ContainerInterface
 {
 
