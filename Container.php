@@ -15,6 +15,7 @@ use Exception;
 use Kiri\Di\Interface\InjectProxyInterface;
 use Kiri\Router\Interface\ValidatorInterface;
 use Psr\Container\ContainerInterface;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -86,20 +87,12 @@ class Container implements ContainerInterface
      */
     public function get(string $id): object
     {
-        if ($id === ContainerInterface::class) {
-            return $this;
-        }
-        if (isset($this->_singletons[$id])) {
-            return $this->_singletons[$id];
-        }
+        if ($id === ContainerInterface::class) return $this;
+        if (isset($this->_singletons[$id])) return $this->_singletons[$id];
         if (isset($this->_interfaces[$id])) {
             $id = $this->_interfaces[$id];
         }
-        $this->_singletons[$id] = $this->make($id);
-        if (!$this->_singletons[$id]) {
-            throw new Exception('Class that cannot be instantiated。');
-        }
-        return $this->_singletons[$id];
+        return $this->_singletons[$id] = $this->make($id);
     }
 
 
@@ -147,13 +140,10 @@ class Container implements ContainerInterface
      */
     public function getReflectionClass(string $className): ReflectionClass
     {
-        if (isset($this->_reflection[$className])) {
-            return $this->_reflection[$className];
+        if (!isset($this->_reflection[$className])) {
+            $this->_reflection[$className] = new ReflectionClass($className);
         }
-
-        $class = new ReflectionClass($className);
-
-        return $this->_reflection[$className] = $class;
+        return $this->_reflection[$className];
     }
 
 
@@ -171,37 +161,49 @@ class Container implements ContainerInterface
             throw new ReflectionException('Class ' . $className . ' cannot be instantiated');
         }
 
-        $constructorHandler = $reflect->getConstructor();
-        if (count($construct) < 1 && $constructorHandler !== null) {
-            $construct = $this->getMethodParams($constructorHandler);
+        if (($handler = $reflect->getConstructor()) !== null) {
+            $construct = $this->getMethodParams($handler);
         }
+        $newInstance = $reflect->newInstanceArgs($construct);
 
-        $object = self::configure($reflect->newInstanceArgs($construct), $config);
-
-        return $this->inject($object, $reflect);
+        return $this->runInit($reflect, static::configure($newInstance, $config));
     }
 
 
     /**
-     * @param object $object
      * @param ReflectionClass $reflect
-     * @return object
+     * @param object $object
+     * @return void
      */
-    private function inject(object $object, ReflectionClass $reflect): object
+    protected function injectClassTarget(ReflectionClass $reflect, object $object): void
     {
-        $targetAttributes = $reflect->getAttributes();
-        foreach ($targetAttributes as $attribute) {
-            if (!class_exists($attribute->getName())) {
-                continue;
-            }
-            if ($object instanceof InjectProxyInterface) {
-                $attribute->newInstance()->dispatch($reflect->getFileName(), $object);
-            } else {
-                $attribute->newInstance()->dispatch($object);
+        $this->resolveProperties($reflect, $object);
+        $attributes = $reflect->getAttributes();
+        foreach ($attributes as $attribute) {
+            if (class_exists($attribute->getName())) {
+                $instance = $attribute->newInstance();
+                if ($object instanceof InjectProxyInterface) {
+                    $instance->dispatch($reflect->getFileName(), $object);
+                } else {
+                    $instance->dispatch($object);
+                }
             }
         }
-        $this->resolveProperties($reflect, $object);
-        if (method_exists($object, 'init') && $object::class !== 'Symfony\Component\Console\Application') {
+    }
+
+
+    /**
+     * @param ReflectionClass $reflect
+     * @param object $object
+     * @return object
+     */
+    protected function runInit(ReflectionClass $reflect, object $object): object
+    {
+        $this->injectClassTarget($reflect, $object);
+        if ($reflect->getName() === 'Symfony\Component\Console\Application') {
+            return $object;
+        }
+        if (method_exists($object, 'init')) {
             call_user_func([$object, 'init']);
         }
         return $object;
@@ -209,30 +211,39 @@ class Container implements ContainerInterface
 
 
     /**
-     * @param ReflectionClass $getReflectionClass
+     * @param ReflectionClass $reflectionClass
      * @param object $class
      * @return void
      */
-    public function resolveProperties(ReflectionClass $getReflectionClass, object $class): void
+    public function resolveProperties(ReflectionClass $reflectionClass, object $class): void
     {
-        $properties = $getReflectionClass->getProperties();
-
-        $filename = $getReflectionClass->getFileName();
+        $properties = $reflectionClass->getProperties();
+        $filename   = $reflectionClass->getFileName();
         foreach ($properties as $property) {
             $propertyAttributes = $property->getAttributes();
             foreach ($propertyAttributes as $attribute) {
-                if (!class_exists($attribute->getName()) || in_array(ValidatorInterface::class, class_implements($attribute->getName()))) {
+                if (!class_exists($attribute->getName()) || $this->isValidatorInterface($attribute)) {
                     continue;
                 }
+                $instance = $attribute->newInstance();
                 if ($class instanceof InjectProxyInterface) {
-                    $attribute->newInstance()->dispatch($filename, $class, $property->getName());
+                    $instance->dispatch($filename, $class, $property->getName());
                 } else {
-                    $attribute->newInstance()->dispatch($class, $property->getName());
+                    $instance->dispatch($class, $property->getName());
                 }
             }
         }
     }
 
+
+    /**
+     * @param ReflectionAttribute $attribute
+     * @return bool
+     */
+    protected function isValidatorInterface(ReflectionAttribute $attribute): bool
+    {
+        return in_array(ValidatorInterface::class, class_implements($attribute->getName()));
+    }
 
     /**
      * @param string $className
@@ -271,12 +282,13 @@ class Container implements ContainerInterface
         $className  = $parameters->getDeclaringClass()->getName();
         $methodName = $parameters->getName();
         if (!isset($this->_parameters[$className])) {
-            return $this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
+            $this->_parameters[$className] = [$methodName => []];
         }
         if (!isset($this->_parameters[$className][$methodName])) {
-            $this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
+            return $this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
+        } else {
+            return $this->_parameters[$className][$methodName];
         }
-        return $this->_parameters[$className][$methodName];
     }
 
 
@@ -294,7 +306,7 @@ class Container implements ContainerInterface
     /**
      * @param ReflectionMethod|ReflectionFunction $parameters
      * @return array
-     * @throws ReflectionException
+     * @throws ReflectionException|Exception
      */
     public function resolveMethodParams(ReflectionMethod|ReflectionFunction $parameters): array
     {
@@ -303,31 +315,40 @@ class Container implements ContainerInterface
             return $params;
         }
         $parametersArray = $parameters->getParameters();
-
-        $className = $parameters->getDeclaringClass()->getName();
+        $class           = $parameters->getDeclaringClass()->getName();
         foreach ($parametersArray as $parameter) {
             $parameterAttributes = $parameter->getAttributes();
-            if (count($parameterAttributes) < 1) {
-                if ($parameter->isDefaultValueAvailable()) {
-                    $value = $parameter->getDefaultValue();
-                } else if ($parameter->getType() === null) {
-                    $value = $parameter->getType();
-                } else {
-                    $value = $parameter->getType()->getName();
-                    if (class_exists($value) || interface_exists($value)) {
-                        $value = $this->get($value);
-                    } else {
-                        $value = $this->getTypeValue($parameter);
-                    }
-                }
-                $params[$parameter->getName()] = $value;
+            $name                = $parameter->getName();
+            if (count($parameterAttributes) > 0) {
+                $attribute     = $parameterAttributes[0]->newInstance();
+                $params[$name] = $attribute->dispatch($class, $parameters->getName());
             } else {
-                $attribute = $parameterAttributes[0]->newInstance();
-
-                $params[$parameter->getName()] = $attribute->dispatch($className, $parameters->getName());
+                $params[$name] = $this->contractParams($parameter);
             }
         }
         return $params;
+    }
+
+
+    /**
+     * @param $parameter
+     * @return bool|int|mixed|object|string|null
+     * @throws Exception
+     */
+    protected function contractParams($parameter): mixed
+    {
+        if ($parameter->isDefaultValueAvailable()) {
+            return $parameter->getDefaultValue();
+        }
+        if ($parameter->getType() === null) {
+            return $parameter->getType();
+        }
+        $value = $parameter->getType()->getName();
+        if (class_exists($value) || interface_exists($value)) {
+            return $this->get($value);
+        } else {
+            return $this->getTypeValue($parameter);
+        }
     }
 
 
