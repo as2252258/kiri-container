@@ -57,14 +57,18 @@ class Container implements ContainerInterface
     private array $_interfaces = [];
 
 
-    private static self|null $container = null;
+    /**
+     * @var Container|null
+     */
+    private static ?Container $container = null;
 
 
     /**
-     *
+     * Construct \ContainerInterface
      */
     private function __construct()
     {
+        $this->_singletons[ContainerInterface::class] = $this;
     }
 
 
@@ -87,12 +91,12 @@ class Container implements ContainerInterface
      */
     public function get(string $id): object
     {
-        if ($id === ContainerInterface::class) return $this;
         if (isset($this->_singletons[$id])) return $this->_singletons[$id];
         if (isset($this->_interfaces[$id])) {
-            $id = $this->_interfaces[$id];
+            return $this->_singletons[$id] = $this->make($this->_interfaces[$id]);
+        } else {
+            return $this->_singletons[$id] = $this->make($id);
         }
-        return $this->_singletons[$id] = $this->make($id);
     }
 
 
