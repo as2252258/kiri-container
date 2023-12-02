@@ -285,9 +285,7 @@ class Container implements ContainerInterface
     {
         $className  = $parameters->getDeclaringClass()->getName();
         $methodName = $parameters->getName();
-        if (!isset($this->_parameters[$className])) {
-            $this->_parameters[$className] = [$methodName => []];
-        }
+        if (!isset($this->_parameters[$className])) $this->_parameters[$className] = [];
         if (!isset($this->_parameters[$className][$methodName])) {
             return $this->_parameters[$className][$methodName] = $this->resolveMethodParams($parameters);
         } else {
