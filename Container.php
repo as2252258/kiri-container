@@ -87,7 +87,7 @@ class Container implements ContainerInterface
     /**
      * @param string $id
      * @return mixed
-     * @throws Exception
+     * @throws
      */
     public function get(string $id): object
     {
@@ -103,7 +103,7 @@ class Container implements ContainerInterface
     /**
      * @param string $id
      * @return object
-     * @throws ReflectionException
+     * @throws
      */
     public function parse(string $id): object
     {
@@ -140,7 +140,7 @@ class Container implements ContainerInterface
     /**
      * @param string $className
      * @return ReflectionClass
-     * @throws ReflectionException
+     * @throws
      */
     public function getReflectionClass(string $className): ReflectionClass
     {
@@ -156,7 +156,7 @@ class Container implements ContainerInterface
      * @param array $construct
      * @param array $config
      * @return object|null
-     * @throws ReflectionException
+     * @throws
      */
     public function make(string $className, array $construct = [], array $config = []): ?object
     {
@@ -253,7 +253,7 @@ class Container implements ContainerInterface
      * @param string $className
      * @param string $method
      * @return ReflectionMethod
-     * @throws ReflectionException
+     * @throws
      */
     public function getMethod(string $className, string $method): ReflectionMethod
     {
@@ -266,7 +266,7 @@ class Container implements ContainerInterface
     /**
      * @param string $className
      * @return ReflectionMethod[]
-     * @throws ReflectionException
+     * @throws
      */
     public function getMethods(string $className): array
     {
@@ -279,7 +279,7 @@ class Container implements ContainerInterface
     /**
      * @param ReflectionMethod $parameters
      * @return array
-     * @throws ReflectionException
+     * @throws
      */
     public function getMethodParams(ReflectionMethod $parameters): array
     {
@@ -297,7 +297,7 @@ class Container implements ContainerInterface
     /**
      * @param Closure $parameters
      * @return array
-     * @throws ReflectionException
+     * @throws
      */
     public function getFunctionParams(Closure $parameters): array
     {
@@ -308,7 +308,7 @@ class Container implements ContainerInterface
     /**
      * @param ReflectionMethod|ReflectionFunction $parameters
      * @return array
-     * @throws ReflectionException|Exception
+     * @throws
      */
     public function resolveMethodParams(ReflectionMethod|ReflectionFunction $parameters): array
     {
@@ -335,7 +335,7 @@ class Container implements ContainerInterface
     /**
      * @param $parameter
      * @return bool|int|mixed|object|string|null
-     * @throws Exception
+     * @throws
      */
     protected function contractParams($parameter): mixed
     {

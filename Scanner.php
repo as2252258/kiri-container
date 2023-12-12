@@ -9,7 +9,6 @@ use Kiri\Di\Inject\Container;
 use Kiri\Abstracts\Component;
 use Kiri\Di\Inject\Skip;
 use Psr\Container\ContainerInterface;
-use ReflectionException;
 use ReflectionMethod;
 
 class Scanner extends Component
@@ -26,7 +25,7 @@ class Scanner extends Component
     /**
      * @param string $path
      * @return void
-     * @throws ReflectionException
+     * @throws
      */
     public function load_directory(string $path): void
     {
@@ -67,7 +66,7 @@ class Scanner extends Component
     /**
      * @param string $path
      * @return void
-     * @throws ReflectionException
+     * @throws
      */
     private function load_file(string $path): void
     {
@@ -85,7 +84,7 @@ class Scanner extends Component
     /**
      * @param $file
      * @return void
-     * @throws ReflectionException
+     * @throws
      */
     protected function parseFile($file): void
     {
