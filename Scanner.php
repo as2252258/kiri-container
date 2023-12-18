@@ -96,6 +96,10 @@ class Scanner extends Component
                 if (count($data) > 0) {
                     return;
                 }
+                $data = $reflect->getAttributes(\Attribute::class);
+                if (count($data) > 0) {
+                    return;
+                }
                 $object  = $this->container->parse($class);
                 $methods = $this->container->getReflectionClass($class);
                 foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {

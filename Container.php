@@ -357,15 +357,17 @@ class Container implements ContainerInterface
     /**
      * @param ReflectionParameter $parameter
      * @return string|int|bool|null
+     * @throws
      */
     private function getTypeValue(ReflectionParameter $parameter): string|int|bool|null
     {
-        return match ($parameter->getType()) {
-            'string'                    => '',
-            'int', 'float'              => 0,
-            '', null, 'object', 'mixed' => NULL,
-            'bool'                      => false,
-            'default'                   => null
+        return match ($parameter->getType()->getName()) {
+            'string'       => '',
+            'int', 'float' => 0,
+            '', 'mixed'    => NULL,
+            'array'        => [],
+            'bool'         => false,
+            default        => null
         };
     }
 
