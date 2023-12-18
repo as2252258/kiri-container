@@ -93,11 +93,14 @@ class Scanner extends Component
         if (class_exists($class)) {
             $reflect = $this->container->getReflectionClass($class);
             if ($reflect->isInstantiable()) {
+                if ($reflect->isTrait() || $reflect->isEnum()) {
+                    return;
+                }
                 $attributes = $this->skipNames($reflect);
                 if (in_array(Skip::class, $attributes) || in_array(\Attribute::class, $attributes)) {
                     return;
                 }
-                $object  = $this->container->parse($class);
+                $object = $this->container->parse($class);
                 foreach ($reflect->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
                     if ($method->isStatic() || $method->getDeclaringClass()->getName() != $class) {
                         continue;
