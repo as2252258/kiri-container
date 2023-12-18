@@ -100,12 +100,14 @@ class Scanner extends Component
                 if (in_array(Skip::class, $attributes) || in_array(\Attribute::class, $attributes)) {
                     return;
                 }
-                $object = $this->container->parse($class);
                 foreach ($reflect->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
                     if ($method->isStatic() || $method->getDeclaringClass()->getName() != $class) {
                         continue;
                     }
                     $attributes = $method->getAttributes();
+                    if (count($attributes) > 0) {
+                        $object = $this->container->parse($class);
+                    }
                     foreach ($attributes as $attribute) {
                         if (!class_exists($attribute->getName())) {
                             continue;
