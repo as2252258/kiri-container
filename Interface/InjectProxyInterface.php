@@ -6,12 +6,12 @@ interface InjectProxyInterface
 {
 
 
-	/**
-	 * @param string $fileName
-	 * @param object $class
-	 * @param string $method
-	 * @return void
-	 */
-	public function dispatch(string $fileName, object $class, string $method): void;
+    /**
+     * @param string $fileName
+     * @param string $class
+     * @param string $method
+     * @return void
+     */
+	public function dispatch(string $fileName, string $class, string $method): void;
 
 }

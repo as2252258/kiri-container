@@ -13,6 +13,7 @@ namespace Kiri\Di;
 use Closure;
 use Exception;
 use Kiri\Di\Interface\InjectProxyInterface;
+use Kiri\Di\Interface\InjectTargetInterface;
 use Kiri\Router\Interface\ValidatorInterface;
 use Psr\Container\ContainerInterface;
 use ReflectionAttribute;
@@ -212,10 +213,8 @@ class Container implements ContainerInterface
         foreach ($attributes as $attribute) {
             if (class_exists($attribute->getName())) {
                 $instance = $attribute->newInstance();
-                if ($object instanceof InjectProxyInterface) {
-                    $instance->dispatch($reflect->getFileName(), $object);
-                } else {
-                    $instance->dispatch($object);
+                if ($instance instanceof InjectTargetInterface) {
+                    $instance->dispatch($object::class);
                 }
             }
         }
@@ -248,7 +247,6 @@ class Container implements ContainerInterface
     public function resolveProperties(ReflectionClass $reflectionClass, object $class): void
     {
         $properties = $reflectionClass->getProperties();
-        $filename   = $reflectionClass->getFileName();
         foreach ($properties as $property) {
             $propertyAttributes = $property->getAttributes();
             foreach ($propertyAttributes as $attribute) {
@@ -256,11 +254,7 @@ class Container implements ContainerInterface
                     continue;
                 }
                 $instance = $attribute->newInstance();
-                if ($class instanceof InjectProxyInterface) {
-                    $instance->dispatch($filename, $class, $property->getName());
-                } else {
-                    $instance->dispatch($class, $property->getName());
-                }
+                $instance->dispatch($class::class, $property->getName());
             }
         }
     }

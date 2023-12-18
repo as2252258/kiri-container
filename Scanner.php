@@ -109,7 +109,7 @@ class Scanner extends Component
                         if (!class_exists($attribute->getName())) {
                             continue;
                         }
-                        $attribute->newInstance()->dispatch($reflect, $method->getName());
+                        $attribute->newInstance()->dispatch($class, $method->getName());
                     }
                 }
             }
