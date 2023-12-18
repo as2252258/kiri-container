@@ -366,6 +366,7 @@ class Container implements ContainerInterface
             'int', 'float' => 0,
             '', 'mixed'    => NULL,
             'array'        => [],
+            'object'       => throw new Exception('Param type must has default value.'),
             'bool'         => false,
             default        => null
         };
