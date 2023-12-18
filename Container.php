@@ -356,10 +356,10 @@ class Container implements ContainerInterface
 
     /**
      * @param ReflectionParameter $parameter
-     * @return string|int|bool|null
+     * @return string|int|bool|null|array
      * @throws
      */
-    private function getTypeValue(ReflectionParameter $parameter): string|int|bool|null
+    private function getTypeValue(ReflectionParameter $parameter): string|int|bool|null|array
     {
         $class = $parameter->getDeclaringClass()->getName();
         $name  = $parameter->getName();
