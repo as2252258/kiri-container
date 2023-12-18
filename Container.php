@@ -361,13 +361,15 @@ class Container implements ContainerInterface
      */
     private function getTypeValue(ReflectionParameter $parameter): string|int|bool|null
     {
+        $class = $parameter->getDeclaringClass()->getName();
+        $name  = $parameter->getName();
         return match ($parameter->getType()->getName()) {
             'string'       => '',
             'int', 'float' => 0,
             '', 'mixed'    => NULL,
-            'array'        => [],
-            'object'       => throw new Exception('Param type must has default value.'),
             'bool'         => false,
+            'object'       => throw new Exception('Param type ' . $class . '::' . $name . ' must has default value.'),
+            'array'        => [],
             default        => null
         };
     }
