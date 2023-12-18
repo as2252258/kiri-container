@@ -98,8 +98,7 @@ class Scanner extends Component
                     return;
                 }
                 $object  = $this->container->parse($class);
-                $methods = $this->container->getReflectionClass($class);
-                foreach ($methods->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                foreach ($reflect->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
                     if ($method->isStatic() || $method->getDeclaringClass()->getName() != $class) {
                         continue;
                     }

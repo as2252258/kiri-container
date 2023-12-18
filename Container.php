@@ -165,7 +165,7 @@ class Container implements ContainerInterface
             throw new ReflectionException('Class ' . $className . ' cannot be instantiated');
         }
 
-        if (($handler = $reflect->getConstructor()) !== null && empty($construct)) {
+        if (($handler = $reflect->getConstructor()) !== null) {
             $construct = $this->getMethodParams($handler);
         }
         $newInstance = $reflect->newInstanceArgs($construct);
