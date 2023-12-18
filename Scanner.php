@@ -9,6 +9,7 @@ use Kiri\Di\Inject\Container;
 use Kiri\Abstracts\Component;
 use Kiri\Di\Inject\Skip;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
 use ReflectionMethod;
 
 class Scanner extends Component
@@ -92,12 +93,8 @@ class Scanner extends Component
         if (class_exists($class)) {
             $reflect = $this->container->getReflectionClass($class);
             if ($reflect->isInstantiable()) {
-                $data = $reflect->getAttributes(Skip::class);
-                if (count($data) > 0) {
-                    return;
-                }
-                $data = $reflect->getAttributes(\Attribute::class);
-                if (count($data) > 0) {
+                $attributes = $this->skipNames($reflect);
+                if (in_array(Skip::class, $attributes) || in_array(\Attribute::class, $attributes)) {
                     return;
                 }
                 $object  = $this->container->parse($class);
@@ -116,5 +113,20 @@ class Scanner extends Component
                 }
             }
         }
+    }
+
+
+    /**
+     * @param ReflectionClass $reflect
+     * @return array
+     */
+    protected function skipNames(ReflectionClass $reflect): array
+    {
+        $attributes = $reflect->getAttributes();
+        $names      = [];
+        foreach ($attributes as $attribute) {
+            $names[] = $attribute->getName();
+        }
+        return $names;
     }
 }
