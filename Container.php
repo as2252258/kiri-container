@@ -12,7 +12,6 @@ namespace Kiri\Di;
 
 use Closure;
 use Exception;
-use Kiri\Di\Interface\InjectProxyInterface;
 use Kiri\Di\Interface\InjectTargetInterface;
 use Kiri\Router\Interface\ValidatorInterface;
 use Psr\Container\ContainerInterface;
