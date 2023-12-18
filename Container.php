@@ -253,7 +253,7 @@ class Container implements ContainerInterface
                     continue;
                 }
                 $instance = $attribute->newInstance();
-                $instance->dispatch($class::class, $property->getName());
+                $instance->dispatch($class, $property->getName());
             }
         }
     }
