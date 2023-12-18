@@ -93,7 +93,7 @@ class Scanner extends Component
         if (class_exists($class)) {
             $reflect = $this->container->getReflectionClass($class);
             if ($reflect->isInstantiable()) {
-                if ($reflect->isTrait() || $reflect->isEnum()) {
+                if ($reflect->isTrait() || $reflect->isEnum() || $reflect->isInterface()) {
                     return;
                 }
                 $attributes = $this->skipNames($reflect);
@@ -105,14 +105,11 @@ class Scanner extends Component
                         continue;
                     }
                     $attributes = $method->getAttributes();
-                    if (count($attributes) > 0) {
-                        $object = $this->container->parse($class);
-                    }
                     foreach ($attributes as $attribute) {
                         if (!class_exists($attribute->getName())) {
                             continue;
                         }
-                        $attribute->newInstance()->dispatch($object, $method->getName());
+                        $attribute->newInstance()->dispatch($reflect, $method->getName());
                     }
                 }
             }

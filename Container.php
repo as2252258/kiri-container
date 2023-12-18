@@ -176,6 +176,32 @@ class Container implements ContainerInterface
 
     /**
      * @param ReflectionClass $reflect
+     * @param array $construct
+     * @param array $config
+     * @return object|null
+     * @throws ReflectionException
+     */
+    public function makeReflection(ReflectionClass $reflect, array $construct = [], array $config = []): ?object
+    {
+        if (isset($this->_singletons[$reflect->getName()])) {
+            return $this->_singletons[$reflect->getName()];
+        }
+
+        if (!$reflect->isInstantiable()) {
+            throw new ReflectionException('Class ' . $reflect->getName() . ' cannot be instantiated');
+        }
+
+        if (($handler = $reflect->getConstructor()) !== null) {
+            $construct = $this->getMethodParams($handler);
+        }
+        $newInstance = $reflect->newInstanceArgs($construct);
+
+        return $this->runInit($reflect, static::configure($newInstance, $config));
+    }
+
+
+    /**
+     * @param ReflectionClass $reflect
      * @param object $object
      * @return void
      */
