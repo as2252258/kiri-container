@@ -24,6 +24,12 @@ class Scanner extends Component
 
 
     /**
+     * @var array
+     */
+    public array $files = [];
+
+
+    /**
      * @param string $path
      * @return void
      * @throws
