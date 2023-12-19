@@ -48,16 +48,13 @@ class Scanner extends Component
                 }
                 $this->load_directory($value->getRealPath());
             } else if ($value->getExtension() == 'php') {
-
-                $mic = microtime(true);
-                $this->load_file($value->getRealPath());
-
-                if (microtime(true) - $mic > 0.005) {
-                    $this->files[$value->getRealPath()] = microtime(true) - $mic;
+                if (in_array($value->getRealPath(), $this->files)) {
+                    continue;
                 }
+                $this->files[] = $value->getRealPath();
+                $this->load_file($value->getRealPath());
             }
         }
-        var_dump($this->files);
     }
 
 
